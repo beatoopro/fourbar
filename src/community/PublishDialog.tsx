@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Composition } from '../core/types';
 import { GENRES, MOODS } from './constants';
-import { api, ME_ID, remixNoteBody, type Publication } from '../services';
+import { api, remixNoteBody, type Publication } from '../services';
+import { ensureAccount } from './auth';
+import { useCommunity } from './store';
 
 /**
  * Publication en une étape : titre + genre suffisent. Ambiances facultatives ;
@@ -30,7 +32,7 @@ export function PublishDialog({
     inputRef.current?.focus();
     inputRef.current?.select();
     void api.getPublication(comp.id).then((p) => setIsUpdate(!!p));
-    if (comp.remixOf) void api.getPublication(comp.remixOf).then((o) => setOriginal(o && o.authorId !== ME_ID ? o : null));
+    if (comp.remixOf) void api.getPublication(comp.remixOf).then((o) => setOriginal(o && o.authorId !== useCommunity.getState().me?.id ? o : null));
   }, [comp.id, comp.remixOf]);
 
   const toggle = (list: string[], v: string, max: number) =>
@@ -41,6 +43,11 @@ export function PublishDialog({
   const submit = async () => {
     if (!canPublish) return;
     setBusy(true);
+    // Sans compte, on le demande ici, une fois la loop prête : la publication part juste après.
+    if (!(await ensureAccount({ kind: 'publish', title }))) {
+      setBusy(false);
+      return;
+    }
     const pub = await api.publish({ ...comp, title: title.trim(), genres, moods });
     if (original && notify && !isUpdate) {
       await api.addComment(original.id, { body: remixNoteBody(pub.composition.title), linkedPublicationId: pub.id }).catch(() => undefined);

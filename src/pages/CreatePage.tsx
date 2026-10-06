@@ -16,9 +16,28 @@ import { downloadBlob, downloadMidi, midiFileName, midiToComposition } from '../
 import { PublishDialog } from '../community/PublishDialog';
 import { loopPath } from '../community/loopLink';
 import { useCommunity } from '../community/store';
+import { ensureAccount, ensureDownloadAllowed } from '../community/auth';
 import { api, ME_ID } from '../services';
 import { navigate, toast, useEngineState } from '../ui/common';
 import * as I from '../ui/Icons';
+
+const REMINDER_KEY = '4chords:v1:guestReminderDismissed';
+
+function readFlag(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeFlag(key: string) {
+  try {
+    localStorage.setItem(key, '1');
+  } catch {
+    /* stockage indisponible */
+  }
+}
 
 export function CreatePage() {
   const comp = useEditor((s) => s.comp);
@@ -34,6 +53,20 @@ export function CreatePage() {
   const [rendering, setRendering] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const bump = useCommunity((s) => s.bump);
+  const me = useCommunity((s) => s.me);
+  const ready = useCommunity((s) => s.ready);
+  const [guestDrafts, setGuestDrafts] = useState(0);
+  const [reminderDismissed, setReminderDismissed] = useState(() => readFlag(REMINDER_KEY));
+
+  // Rappel doux, une seule fois : à partir de 3 brouillons, l'invité apprend qu'ils ne sont que dans ce navigateur.
+  useEffect(() => {
+    if (ready && !me) void api.listDrafts().then((d) => setGuestDrafts(d.length));
+  }, [ready, me]);
+  const showReminder = ready && !me && !reminderDismissed && guestDrafts >= 3;
+  const dismissReminder = () => {
+    setReminderDismissed(true);
+    writeFlag(REMINDER_KEY);
+  };
 
   // Le moteur suit les modifications en temps réel pendant la lecture.
   useEffect(() => {
@@ -128,7 +161,11 @@ export function CreatePage() {
     await api.saveDraft({ ...c, title: c.title || 'Untitled' });
     useEditor.getState().markSaved();
     bump();
-    toast('Project saved to your profile');
+    if (useCommunity.getState().me) toast('Project saved to your profile');
+    else {
+      toast('Project saved in this browser');
+      setGuestDrafts((await api.listDrafts()).length);
+    }
   };
 
   const newProject = () => {
@@ -137,8 +174,14 @@ export function CreatePage() {
     useEditor.getState().load(createComposition(ME_ID, { bpm: comp.bpm, key: comp.key }));
   };
 
+  const exportMidi = async () => {
+    setExportOpen(false);
+    if (await ensureDownloadAllowed()) downloadMidi(useEditor.getState().comp);
+  };
+
   const exportWav = async () => {
     setExportOpen(false);
+    if (!(await ensureDownloadAllowed())) return;
     setRendering(true);
     try {
       const blob = await renderWav(useEditor.getState().comp);
@@ -242,7 +285,7 @@ export function CreatePage() {
             </button>
             {exportOpen && (
               <div className="menu" onMouseLeave={() => setExportOpen(false)}>
-                <button onClick={() => { setExportOpen(false); downloadMidi(useEditor.getState().comp); }}>
+                <button onClick={() => void exportMidi()}>
                   <b>MIDI</b>
                   <span>4 tracks, drums on channel 10</span>
                 </button>
@@ -274,6 +317,22 @@ export function CreatePage() {
         </div>
       </div>
 
+      {showReminder && (
+        <div className="guest-banner" role="status">
+          <span>Your loops are only saved in this browser. Create a free account to find them anywhere.</span>
+          <button
+            className="btn primary sm"
+            onClick={async () => {
+              if (await ensureAccount({ kind: 'signin' })) dismissReminder();
+            }}
+          >
+            Create an account
+          </button>
+          <button className="auth-close" onClick={dismissReminder} aria-label="Dismiss">
+            <I.Close size={14} />
+          </button>
+        </div>
+      )}
       <div className="create-body">
         <TrackPanel />
         <div className="editor">

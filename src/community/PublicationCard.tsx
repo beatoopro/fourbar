@@ -8,6 +8,7 @@ import { downloadMidi } from '../core/midi';
 import { engine } from '../audio/engine';
 import { useEditor } from '../editor/store';
 import { api, ME_ID, type Publication } from '../services';
+import { ensureDownloadAllowed } from './auth';
 import { Avatar, navigate, timeAgo, toast, useEngineState } from '../ui/common';
 import { useCommunity } from './store';
 import * as I from '../ui/Icons';
@@ -89,7 +90,7 @@ export function openRemix(pub: Publication) {
   if (ed.dirty && TRACK_IDS.some((id) => ed.comp.tracks[id].notes.length) && !confirm('Open this remix in the editor? Your unsaved draft will be replaced.')) return;
   engine.stop();
   // Remixer sa propre création : on l'édite directement (mise à jour de la publication).
-  ed.load(pub.authorId === ME_ID ? pub.composition : remixOf(pub.composition, ME_ID));
+  ed.load(pub.authorId === useCommunity.getState().me?.id ? pub.composition : remixOf(pub.composition, ME_ID));
   navigate('/create');
 }
 
@@ -97,6 +98,7 @@ export function PublicationCard({ pub, highlight }: { pub: Publication; highligh
   const users = useCommunity((s) => s.users);
   const liked = useCommunity((s) => s.liked.has(pub.id));
   const toggleLike = useCommunity((s) => s.toggleLike);
+  const meId = useCommunity((s) => s.me?.id);
   const engineState = useEngineState();
   const [likes, setLikes] = useState(pub.likes);
   const [original, setOriginal] = useState<Publication | null>(null);
@@ -154,7 +156,10 @@ export function PublicationCard({ pub, highlight }: { pub: Publication; highligh
       <div className="card-actions">
         <button
           className={`act ${liked ? 'liked' : ''}`}
-          onClick={async () => setLikes(await toggleLike(pub))}
+          onClick={async () => {
+            const n = await toggleLike(pub);
+            if (n !== null) setLikes(n);
+          }}
           title={liked ? 'Unlike' : 'Like'}
         >
           <I.Heart size={15} filled={liked} /> {likes}
@@ -164,7 +169,8 @@ export function PublicationCard({ pub, highlight }: { pub: Publication; highligh
         </button>
         <button
           className="act"
-          onClick={() => {
+          onClick={async () => {
+            if (!(await ensureDownloadAllowed())) return;
             downloadMidi(c);
             toast('MIDI downloaded');
           }}
@@ -173,7 +179,7 @@ export function PublicationCard({ pub, highlight }: { pub: Publication; highligh
           <I.Download size={15} /> MIDI
         </button>
         <button className="act remix" onClick={() => openRemix(pub)} title="Open in the editor">
-          <I.Remix size={15} /> {pub.authorId === ME_ID ? 'Edit' : 'Remix'}
+          <I.Remix size={15} /> {pub.authorId === meId ? 'Edit' : 'Remix'}
         </button>
       </div>
     </article>

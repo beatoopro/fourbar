@@ -80,10 +80,51 @@ export interface FeedQuery {
   filters?: AdvancedFilters;
 }
 
+/** Erreur renvoyée par les actions qui demandent un compte (publier, liker, commenter…). */
+export class AuthRequiredError extends Error {
+  constructor() {
+    super('You need an account for this.');
+    this.name = 'AuthRequiredError';
+  }
+}
+
+/** Connexion sans mot de passe : Google, ou e-mail + code à 6 chiffres. */
+export type SignInMethod = { provider: 'google' } | { provider: 'email'; email: string; code: string };
+
+export interface SignInResult {
+  user: User;
+  /** Premier passage : l'interface propose de choisir le nom et le pseudo. */
+  isNew: boolean;
+  /** Brouillons faits en invité, rattachés au compte à la connexion. */
+  importedDrafts: number;
+}
+
+/** Pseudo (@handle) : 3 à 20 caractères, minuscules, chiffres, point et tiret bas. */
+export const HANDLE_PATTERN = /^[a-z0-9._]{3,20}$/;
+
+export function normalizeHandle(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/^@/, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9._]/g, '')
+    .slice(0, 20);
+}
+
+export type ProfilePatch = Partial<Pick<User, 'name' | 'handle' | 'bio'>>;
+
 export interface CommunityApi {
-  // Authentification (simulée en V1)
-  getCurrentUser(): Promise<User>;
-  updateCurrentUser(patch: Partial<Pick<User, 'name' | 'bio'>>): Promise<User>;
+  // Authentification (simulée en V1). null = visiteur sans compte.
+  getCurrentUser(): Promise<User | null>;
+  /** Envoie le code de connexion par e-mail. `demoCode` n'existe qu'en mode local, faute d'envoi réel. */
+  requestEmailCode(email: string): Promise<{ demoCode?: string }>;
+  /** Connecte (ou crée le compte) et rattache les brouillons faits en invité. */
+  signIn(method: SignInMethod): Promise<SignInResult>;
+  signOut(): Promise<void>;
+  isHandleAvailable(handle: string): Promise<boolean>;
+  updateCurrentUser(patch: ProfilePatch): Promise<User>;
 
   // Utilisateurs
   getUser(id: string): Promise<User | null>;
@@ -111,7 +152,7 @@ export interface CommunityApi {
   /** Signale un commentaire (V1 : enregistré localement et masqué pour soi). */
   reportComment(commentId: string, reason: string): Promise<void>;
 
-  // Brouillons (projets non publiés)
+  // Brouillons (projets non publiés). En invité, ils restent dans le navigateur jusqu'à la connexion.
   listDrafts(): Promise<Composition[]>;
   saveDraft(composition: Composition): Promise<void>;
   deleteDraft(id: string): Promise<void>;

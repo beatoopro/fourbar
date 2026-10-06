@@ -4,6 +4,8 @@ import { CreatePage } from './pages/CreatePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { LoopPage } from './pages/LoopPage';
 import { useCommunity } from './community/store';
+import { ensureAccount } from './community/auth';
+import { SignInDialog } from './community/SignInDialog';
 import { ME_ID } from './services';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import { Avatar, Toaster, navigate, useRoute } from './ui/common';
@@ -11,6 +13,7 @@ import { Avatar, Toaster, navigate, useRoute } from './ui/common';
 export function App() {
   const { path, query } = useRoute();
   const me = useCommunity((s) => s.me);
+  const ready = useCommunity((s) => s.ready);
   const init = useCommunity((s) => s.init);
   const section = path[0];
 
@@ -42,9 +45,17 @@ export function App() {
           {link('profile', 'Profile')}
         </nav>
         <div className="topbar-right">
-          <button className="me" onClick={() => navigate('/profile')} title="My profile (simulated, no account)">
-            <Avatar user={me} size={28} />
-          </button>
+          {me ? (
+            <button className="me" onClick={() => navigate('/profile')} title="My profile">
+              <Avatar user={me} size={28} />
+            </button>
+          ) : (
+            ready && (
+              <button className="btn primary sm" onClick={() => void ensureAccount({ kind: 'signin' })}>
+                Sign in
+              </button>
+            )
+          )}
         </div>
       </header>
       <main className={`main ${section === 'create' ? 'no-scroll' : ''}`}>
@@ -60,6 +71,7 @@ export function App() {
           )}
         </ErrorBoundary>
       </main>
+      <SignInDialog />
       <Toaster />
     </div>
   );

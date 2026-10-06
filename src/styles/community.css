@@ -850,3 +850,146 @@ button.cm-chip:hover {
     width: 100%;
   }
 }
+
+/* ---------- Connexion ---------- */
+.auth-backdrop {
+  z-index: 60;
+}
+.modal.auth {
+  position: relative;
+  width: 400px;
+}
+.auth-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 4px;
+}
+.auth-close:hover {
+  color: var(--text);
+}
+.modal.auth h2 {
+  padding-right: 24px;
+}
+.auth-google,
+.auth-wide {
+  width: 100%;
+  height: 42px;
+  justify-content: center;
+  font-size: 14px;
+}
+.auth-google {
+  gap: 10px;
+  background: #fff;
+  color: #1f1f1f;
+  border-color: #fff;
+}
+.auth-google:hover {
+  background: #f1f1f1;
+}
+.auth-or {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+  color: var(--text-3);
+  font-size: 12px;
+}
+.auth-or::before,
+.auth-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.auth-input {
+  width: 100%;
+  height: 42px;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+.auth-code {
+  font-family: var(--mono);
+  font-size: 22px;
+  letter-spacing: 0.4em;
+  text-align: center;
+}
+.auth-fine,
+.auth-demo {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--text-3);
+  text-align: center;
+}
+.auth-demo {
+  margin: 0 0 10px;
+  color: var(--accent-3);
+}
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+.auth-links button {
+  background: none;
+  border: none;
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+.auth-links button:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+.auth-handle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-3);
+}
+.auth-handle .input {
+  flex: 1;
+}
+.auth-consent {
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0 16px;
+  line-height: 1.4;
+}
+.auth-consent input {
+  margin-top: 2px;
+}
+.auth-error {
+  margin: 12px 0 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+/* Invité : invitation à créer un compte (profil, éditeur) */
+.guest-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: var(--accent-bg);
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--text-2);
+}
+.guest-banner span {
+  flex: 1;
+}
+.guest-banner .auth-close {
+  position: static;
+}
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}

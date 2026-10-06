@@ -3,8 +3,8 @@ import { cloneComposition, normalizeComposition } from '../../core/composition';
 import { LOOP_TICKS, PPQ } from '../../core/timing';
 import { matchesFilters } from '../../core/search';
 import { uid } from '../../core/composition';
-import type { CommentSort, CommunityApi, FeedQuery, LoopComment, NewComment, Publication, User } from '../types';
-import { COMMENT_MAX_LENGTH } from '../types';
+import type { CommentSort, CommunityApi, FeedQuery, LoopComment, NewComment, ProfilePatch, Publication, SignInMethod, SignInResult, User } from '../types';
+import { AuthRequiredError, COMMENT_MAX_LENGTH, HANDLE_PATTERN, normalizeHandle } from '../types';
 import { DEFAULT_ME, ME_ID, SEED_LIKED, SEED_USERS, buildSeedPublications } from './seed';
 import { SEED_COMMENT_LIKES, buildSeedComments, type StoredComment } from './seedComments';
 
@@ -25,7 +25,16 @@ const KEYS = {
   commentLikes: `${PREFIX}commentLikes`,
   commentsSeeded: `${PREFIX}commentsSeeded`,
   reports: `${PREFIX}reports`,
+  /** Connecté ou invité sur ce navigateur. */
+  session: `${PREFIX}session`,
+  /** Le compte local a déjà été créé (sinon la connexion est une inscription). */
+  account: `${PREFIX}account`,
+  /** Brouillons faits sans compte, rattachés au compte à la connexion. */
+  guestDrafts: `${PREFIX}guestDrafts`,
+  emailCode: `${PREFIX}emailCode`,
 };
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface Report {
   commentId: string;
@@ -64,6 +73,11 @@ const LEGACY_ME: Partial<User> = { name: 'Vous', handle: 'vous', bio: 'Mes boucl
 export class LocalCommunityApi implements CommunityApi {
   constructor() {
     const seeded = read<number>(KEYS.seeded, 0);
+    // Navigateur déjà utilisé avant les comptes : on le considère connecté pour ne rien lui faire perdre.
+    if (read<boolean | null>(KEYS.session, null) === null) {
+      write(KEYS.session, seeded !== 0);
+      write(KEYS.account, seeded !== 0);
+    }
     if (seeded === 0) this.reset();
     else if (seeded < SEED_VERSION) this.upgradeSeed();
     // Les commentaires de démo sont ajoutés à part, sans toucher aux publications existantes.
@@ -117,20 +131,104 @@ export class LocalCommunityApi implements CommunityApi {
     return read<StoredComment[]>(KEYS.comments, []);
   }
 
-  private drafts(): Composition[] {
-    return read<Composition[]>(KEYS.drafts, []).map(normalizeComposition);
+  private signedIn(): boolean {
+    return read<boolean>(KEYS.session, false);
   }
 
-  async getCurrentUser(): Promise<User> {
+  /** Les actions publiques demandent un compte, comme le ferait le serveur. */
+  private guard() {
+    if (!this.signedIn()) throw new AuthRequiredError();
+  }
+
+  private draftsKey() {
+    return this.signedIn() ? KEYS.drafts : KEYS.guestDrafts;
+  }
+
+  private drafts(key = this.draftsKey()): Composition[] {
+    return read<Composition[]>(key, []).map(normalizeComposition);
+  }
+
+  private storedMe(): User {
     const stored = read<Partial<User>>(KEYS.me, {});
     for (const k of ['name', 'handle', 'bio'] as const) if (stored[k] === LEGACY_ME[k]) delete stored[k];
     return { ...DEFAULT_ME, ...stored };
   }
 
-  async updateCurrentUser(patch: Partial<Pick<User, 'name' | 'bio'>>): Promise<User> {
-    const me = { ...(await this.getCurrentUser()), ...patch };
-    write(KEYS.me, me);
-    return me;
+  async getCurrentUser(): Promise<User | null> {
+    return this.signedIn() ? this.storedMe() : null;
+  }
+
+  async requestEmailCode(email: string): Promise<{ demoCode?: string }> {
+    const e = email.trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(e)) throw new Error('Enter a valid email address.');
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    write(KEYS.emailCode, { email: e, code });
+    return { demoCode: code };
+  }
+
+  async signIn(method: SignInMethod): Promise<SignInResult> {
+    let email: string | null = null;
+    if (method.provider === 'email') {
+      const pending = read<{ email: string; code: string } | null>(KEYS.emailCode, null);
+      email = method.email.trim().toLowerCase();
+      if (!pending || pending.email !== email || pending.code !== method.code.replace(/\s/g, '')) {
+        throw new Error('That code isn’t right. Check the email or ask for a new code.');
+      }
+      write(KEYS.emailCode, null);
+    }
+    const isNew = !read<boolean>(KEYS.account, false);
+    if (isNew) {
+      // Nom et pseudo proposés d'après l'e-mail ; l'utilisateur les confirme juste après.
+      const local = email?.split('@')[0] ?? '';
+      const name = local ? local.replace(/[._-]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).slice(0, 40) : DEFAULT_ME.name;
+      const base = normalizeHandle(local) || DEFAULT_ME.handle;
+      let handle = base.length >= 3 ? base : `${base}music`;
+      for (let i = 2; !(await this.isHandleAvailable(handle)); i++) handle = `${base.slice(0, 17)}${i}`;
+      write(KEYS.me, { ...DEFAULT_ME, name, handle, joinedAt: new Date().toISOString().slice(0, 10) });
+      // Un nouveau compte part sans favoris (les favoris de démo n'appartiennent à personne).
+      write(KEYS.likes, []);
+      write(KEYS.commentLikes, []);
+      write(KEYS.account, true);
+    }
+    write(KEYS.session, true);
+    const importedDrafts = this.importGuestDrafts();
+    return { user: this.storedMe(), isNew, importedDrafts };
+  }
+
+  /** Fusionne les brouillons invités dans le compte : rien n'est écrasé, le plus récent gagne à identifiant égal. */
+  private importGuestDrafts(): number {
+    const guest = this.drafts(KEYS.guestDrafts);
+    if (!guest.length) return 0;
+    const byId = new Map(this.drafts(KEYS.drafts).map((d) => [d.id, d]));
+    for (const d of guest) {
+      const existing = byId.get(d.id);
+      if (!existing || existing.updatedAt < d.updatedAt) byId.set(d.id, d);
+    }
+    write(KEYS.drafts, [...byId.values()]);
+    write(KEYS.guestDrafts, []);
+    return guest.length;
+  }
+
+  async signOut(): Promise<void> {
+    write(KEYS.session, false);
+  }
+
+  async isHandleAvailable(handle: string): Promise<boolean> {
+    const h = normalizeHandle(handle);
+    return !SEED_USERS.some((u) => u.handle === h);
+  }
+
+  async updateCurrentUser(patch: ProfilePatch): Promise<User> {
+    this.guard();
+    const next = { ...this.storedMe(), ...patch };
+    if (patch.handle !== undefined) {
+      next.handle = normalizeHandle(patch.handle);
+      if (!HANDLE_PATTERN.test(next.handle)) throw new Error('Your username needs 3 to 20 letters, numbers, dots or underscores.');
+      if (!(await this.isHandleAvailable(next.handle))) throw new Error(`@${next.handle} is already taken.`);
+    }
+    if (patch.name !== undefined) next.name = patch.name.trim().slice(0, 40) || next.name;
+    write(KEYS.me, next);
+    return next;
   }
 
   async getUser(id: string): Promise<User | null> {
@@ -139,7 +237,8 @@ export class LocalCommunityApi implements CommunityApi {
   }
 
   async listUsers(): Promise<User[]> {
-    return [await this.getCurrentUser(), ...SEED_USERS];
+    const me = await this.getCurrentUser();
+    return me ? [me, ...SEED_USERS] : SEED_USERS;
   }
 
   async listPublications(q: FeedQuery = {}): Promise<Publication[]> {
@@ -196,6 +295,7 @@ export class LocalCommunityApi implements CommunityApi {
   }
 
   async publish(composition: Composition): Promise<Publication> {
+    this.guard();
     const pubs = this.pubs();
     const c = normalizeComposition(cloneComposition(composition));
     c.authorId = ME_ID;
@@ -213,6 +313,7 @@ export class LocalCommunityApi implements CommunityApi {
   }
 
   async deletePublication(id: string): Promise<void> {
+    this.guard();
     const pubs = this.pubs();
     if (!pubs.some((p) => p.id === id && p.authorId === ME_ID)) return;
     write(KEYS.pubs, pubs.filter((p) => p.id !== id));
@@ -233,10 +334,11 @@ export class LocalCommunityApi implements CommunityApi {
   }
 
   async getLikedIds(): Promise<string[]> {
-    return read<string[]>(KEYS.likes, []);
+    return this.signedIn() ? read<string[]>(KEYS.likes, []) : [];
   }
 
   async toggleLike(id: string): Promise<{ liked: boolean; likes: number }> {
+    this.guard();
     const likes = await this.getLikedIds();
     const pubs = this.pubs();
     const p = pubs.find((x) => x.id === id);
@@ -250,8 +352,8 @@ export class LocalCommunityApi implements CommunityApi {
   }
 
   async listComments(publicationId: string, sort: CommentSort = 'recent'): Promise<LoopComment[]> {
-    const liked = new Set(read<string[]>(KEYS.commentLikes, []));
-    const reported = new Set(read<Report[]>(KEYS.reports, []).map((r) => r.commentId));
+    const liked = new Set(this.signedIn() ? read<string[]>(KEYS.commentLikes, []) : []);
+    const reported = new Set((this.signedIn() ? read<Report[]>(KEYS.reports, []) : []).map((r) => r.commentId));
     const all = this.comments().filter((c) => c.publicationId === publicationId && !reported.has(c.id));
     const view = (c: StoredComment): LoopComment => ({ ...c, likedByMe: liked.has(c.id) });
     const time = (c: StoredComment) => new Date(c.createdAt).getTime();
@@ -264,6 +366,7 @@ export class LocalCommunityApi implements CommunityApi {
   }
 
   async addComment(publicationId: string, input: NewComment): Promise<LoopComment> {
+    this.guard();
     const body = cleanBody(input.body ?? '');
     if (!body) throw new Error('The comment is empty.');
     if (body.length > COMMENT_MAX_LENGTH) throw new Error(`The comment is longer than ${COMMENT_MAX_LENGTH} characters.`);
@@ -297,6 +400,7 @@ export class LocalCommunityApi implements CommunityApi {
   }
 
   async deleteComment(commentId: string): Promise<void> {
+    this.guard();
     let comments = this.comments();
     const c = comments.find((x) => x.id === commentId);
     if (!c) return;
@@ -316,6 +420,7 @@ export class LocalCommunityApi implements CommunityApi {
   }
 
   async toggleCommentLike(commentId: string): Promise<{ liked: boolean; likes: number }> {
+    this.guard();
     const likes = read<string[]>(KEYS.commentLikes, []);
     const comments = this.comments();
     const c = comments.find((x) => x.id === commentId);
@@ -328,6 +433,7 @@ export class LocalCommunityApi implements CommunityApi {
   }
 
   async reportComment(commentId: string, reason: string): Promise<void> {
+    this.guard();
     const reports = read<Report[]>(KEYS.reports, []).filter((r) => r.commentId !== commentId);
     write(KEYS.reports, [...reports, { commentId, reason: reason.trim().slice(0, 200), at: new Date().toISOString() }]);
   }
@@ -338,10 +444,10 @@ export class LocalCommunityApi implements CommunityApi {
 
   async saveDraft(composition: Composition): Promise<void> {
     const drafts = this.drafts().filter((d) => d.id !== composition.id);
-    write(KEYS.drafts, [{ ...cloneComposition(composition), updatedAt: new Date().toISOString() }, ...drafts]);
+    write(this.draftsKey(), [{ ...cloneComposition(composition), updatedAt: new Date().toISOString() }, ...drafts]);
   }
 
   async deleteDraft(id: string): Promise<void> {
-    write(KEYS.drafts, this.drafts().filter((d) => d.id !== id));
+    write(this.draftsKey(), this.drafts().filter((d) => d.id !== id));
   }
 }
