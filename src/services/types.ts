@@ -1,3 +1,4 @@
+import type { AdvancedFilters } from '../core/search';
 import type { Composition } from '../core/types';
 
 /**
@@ -75,6 +76,8 @@ export interface FeedQuery {
   /** Uniquement les remixes (composition.remixOf défini). */
   remixesOnly?: boolean;
   ids?: string[];
+  /** Recherche avancée (BPM, tonalité, pistes, progression…). */
+  filters?: AdvancedFilters;
 }
 
 export interface CommunityApi {

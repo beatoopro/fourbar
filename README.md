@@ -91,6 +91,12 @@ Le son démarre au premier clic (règle des navigateurs).
 - Filtres par genre (Jazz, Lo-fi, Hip-hop, Neo-soul, R&B, Pop, House,
   Cinematic, Trap) et par ambiance, recherche, classements Tendances,
   Populaires, Récentes, Plus remixées.
+- Recherche avancée (bouton Advanced) : BPM de/à, tonalité (avec la relative
+  en option), artiste, date, pistes présentes ou absentes, instrument,
+  originaux/remixes et progression d'accords (« ii-V-I » selon la tonalité de
+  chaque loop, ou « Am F C G »). Les accords sont reconnus à partir des notes
+  (core/search.ts). « Match my project » cale BPM et tonalité sur le projet en
+  cours. Toute la recherche est dans l'URL, donc partageable.
 - Publication depuis l'éditeur : nom + genre puis Entrée. BPM, tonalité,
   auteur et date sont automatiques ; ambiance facultative.
 - Remix : ouvre la création dans l'éditeur comme nouvelle composition liée à

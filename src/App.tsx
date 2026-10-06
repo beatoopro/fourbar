@@ -56,7 +56,7 @@ export function App() {
           ) : section === 'profile' ? (
             <ProfilePage userId={path[1] ?? ME_ID} />
           ) : (
-            <ExplorePage highlight={query.get('highlight')} />
+            <ExplorePage query={query} />
           )}
         </ErrorBoundary>
       </main>

@@ -121,6 +121,13 @@ export const Search = (p: P) => (
     <path d="M20 20l-4-4" />
   </svg>
 );
+export const Sliders = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
+    <circle cx="16" cy="7" r="2" />
+    <circle cx="10" cy="17" r="2" />
+  </svg>
+);
 export const Keyboard = (p: P) => (
   <svg {...base(p)}>
     <rect x="3" y="6" width="18" height="12" rx="2" />
