@@ -1,6 +1,7 @@
 import * as Tone from 'tone';
 import { mapDrumPitch } from '../core/drums';
 import type { InstrumentVoice } from './instruments';
+import { getLoadedBank, loadBank, type DecodedBank } from './samples';
 
 /**
  * Kits de batterie 100 % synthétisés (comme les boîtes à rythmes 808 et 909,
@@ -9,8 +10,9 @@ import type { InstrumentVoice } from './instruments';
  * Toutes les sources tournent en continu et chaque coup ne fait que
  * déclencher une enveloppe : on peut donc rejouer un élément à n'importe quel
  * moment (roulements rapides, rendu hors-ligne) sans contrainte d'ordre.
- * La structure accepte plus tard des kits d'échantillons (Tone.Players) : il
- * suffit de fournir un autre `InstrumentVoice` pour le même identifiant.
+ * Exception : la ride, trop métallique en synthèse, joue un vrai coup de
+ * baguette sur cymbale (VCSL, CC0). La ride synthétisée sert de secours tant
+ * que le fichier charge.
  */
 
 type Hit = (time: number, velocity: number) => void;
@@ -71,6 +73,8 @@ interface KitSpec {
   clap: { freq: number; tail: number; gain: number };
   hat: { decay: number; open: number; freq: number; metal: number; noise: number };
   tom: { lo: number; hi: number; decay: number };
+  /** Ride échantillonnée : vitesse de lecture (accord) et gain. */
+  ride: { rate: number; gain: number };
   /** Coloration du kit : passe-bas (Hz) et saturation (0-1). */
   tone: { lowpass: number; drive: number; gain: number };
 }
@@ -82,6 +86,7 @@ const KITS: Record<string, KitSpec> = {
     clap: { freq: 1150, tail: 0.2, gain: 0.95 },
     hat: { decay: 0.045, open: 0.32, freq: 8200, metal: 0.9, noise: 0.25 },
     tom: { lo: 95, hi: 145, decay: 0.45 },
+    ride: { rate: 1.06, gain: 0.45 },
     tone: { lowpass: 16000, drive: 0, gain: 1 },
   },
   'kit-dusty': {
@@ -90,6 +95,7 @@ const KITS: Record<string, KitSpec> = {
     clap: { freq: 1000, tail: 0.16, gain: 0.8 },
     hat: { decay: 0.05, open: 0.26, freq: 6500, metal: 0.35, noise: 0.75 },
     tom: { lo: 100, hi: 150, decay: 0.3 },
+    ride: { rate: 0.94, gain: 0.4 },
     tone: { lowpass: 6200, drive: 0.22, gain: 1.15 },
   },
   'kit-house': {
@@ -98,12 +104,14 @@ const KITS: Record<string, KitSpec> = {
     clap: { freq: 1300, tail: 0.22, gain: 1.1 },
     hat: { decay: 0.04, open: 0.24, freq: 9500, metal: 0.55, noise: 0.6 },
     tom: { lo: 110, hi: 165, decay: 0.32 },
+    ride: { rate: 1, gain: 0.6 },
     tone: { lowpass: 15000, drive: 0.06, gain: 1 },
   },
 };
 
 export function createDrumKit(id: string): InstrumentVoice {
   const k = KITS[id] ?? KITS['kit-dusty'];
+  const context = Tone.getContext();
   const nodes: Tone.ToneAudioNode[] = [];
   const add = <T extends Tone.ToneAudioNode>(n: T) => (nodes.push(n), n);
 
@@ -145,9 +153,31 @@ export function createDrumKit(id: string): InstrumentVoice {
   const openMetal = own(noisy(bus, metal.out, { type: 'highpass', freq: k.hat.freq * 0.9, decay: k.hat.open, gain: k.hat.metal * 1.8 }));
   const openNoise = own(noisy(bus, white, { type: 'highpass', freq: k.hat.freq * 0.9, decay: k.hat.open, gain: k.hat.noise * 0.8 }));
 
-  // Ride, crash, shaker.
-  const ride = own(noisy(bus, metalHi.out, { type: 'bandpass', freq: 5200, q: 0.8, decay: 1.1, gain: 1.6 }));
+  // Ride : échantillon (couche douce ou forte selon la vélocité), synthé en attendant.
+  const synthRide = own(noisy(bus, metalHi.out, { type: 'bandpass', freq: 5200, q: 0.8, decay: 1.1, gain: 1.6 }));
   const rideTick = own(noisy(bus, white, { type: 'highpass', freq: 9000, decay: 0.03, gain: 0.25 }));
+  const rideOut = add(new Tone.Gain(k.ride.gain));
+  rideOut.connect(bus);
+  let rideBank: DecodedBank | null = getLoadedBank('ride') ?? null;
+  if (!rideBank) void loadBank('ride').then((b) => (rideBank = b));
+  const rideVoices = new Set<Tone.ToneBufferSource>();
+  const ride: Hit = (time, v) => {
+    const buffer = rideBank?.get(v * 127 <= 64 ? 64 : 127);
+    if (!buffer) {
+      synthRide.hit(time, v);
+      rideTick.hit(time, v);
+      return;
+    }
+    const src = new Tone.ToneBufferSource({ context, url: buffer, playbackRate: k.ride.rate }).connect(rideOut);
+    src.onended = () => {
+      rideVoices.delete(src);
+      src.dispose();
+    };
+    rideVoices.add(src);
+    src.start(time, 0, undefined, v);
+  };
+
+  // Crash, shaker.
   const crashMetal = own(noisy(bus, metal.out, { type: 'highpass', freq: 4500, decay: 1.6, gain: 1.3, attack: 0.002 }));
   const crashNoise = own(noisy(bus, white, { type: 'highpass', freq: 5000, decay: 1.4, gain: 0.45, attack: 0.002 }));
   const shaker = own(noisy(bus, white, { type: 'bandpass', freq: 6500, q: 1.4, decay: 0.05, gain: 0.7, attack: 0.008 }));
@@ -174,7 +204,7 @@ export function createDrumKit(id: string): InstrumentVoice {
       hatNoise.hit(t, v);
     },
     46: both(openMetal.hit, openNoise.hit),
-    51: both(ride.hit, rideTick.hit),
+    51: ride,
     49: both(crashMetal.hit, crashNoise.hit),
     70: shaker.hit,
     45: both(tomLo.hit, tomNoise.hit),
@@ -191,6 +221,7 @@ export function createDrumKit(id: string): InstrumentVoice {
       /* Coups « one-shot » : rien à relâcher. */
     },
     dispose() {
+      rideVoices.forEach((src) => src.dispose());
       nodes.forEach((n) => n.dispose());
     },
   };

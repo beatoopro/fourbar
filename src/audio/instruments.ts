@@ -231,6 +231,7 @@ export function createInstrument(id: string): InstrumentVoice {
 
 /** Charge à l'avance les échantillons d'un instrument (indispensable avant un rendu hors-ligne). */
 export async function preloadInstrument(id: string): Promise<void> {
+  if (isDrumKit(id)) await loadBank('ride');
   const def = SAMPLED[id];
   if (def) await loadBank(def.bank);
 }

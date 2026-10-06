@@ -18,6 +18,8 @@ export const SAMPLE_BANKS: Record<string, SampleBank> = {
   epiano: { dir: 'epiano', notes: every3(36, 93) },
   'bass-finger': { dir: 'bass-finger', notes: every3(24, 69) },
   'bass-upright': { dir: 'bass-upright', notes: every3(24, 69) },
+  // Ride de batterie : ici les fichiers sont nommés par vélocité MIDI maximale (couches douce et forte).
+  ride: { dir: 'ride', notes: [64, 127] },
 };
 
 export type DecodedBank = Map<number, AudioBuffer>;
