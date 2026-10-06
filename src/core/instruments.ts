@@ -13,7 +13,8 @@ export interface InstrumentMeta {
 }
 
 export const INSTRUMENTS: InstrumentMeta[] = [
-  { id: 'keys', label: 'Soft Keys', track: 'chords', gmProgram: 4 },
+  { id: 'keys', label: 'Grand Piano', track: 'chords', gmProgram: 0 },
+  { id: 'epiano', label: 'Electric Piano', track: 'chords', gmProgram: 4 },
   { id: 'pad', label: 'Warm Pad', track: 'chords', gmProgram: 89 },
   { id: 'organ', label: 'Velvet Organ', track: 'chords', gmProgram: 16 },
   { id: 'pluck', label: 'Glass Pluck', track: 'melody', gmProgram: 46 },
@@ -21,7 +22,8 @@ export const INSTRUMENTS: InstrumentMeta[] = [
   { id: 'lead', label: 'Soft Lead', track: 'melody', gmProgram: 80 },
   { id: 'sub', label: 'Sub Bass', track: 'bass', gmProgram: 38 },
   { id: 'analog', label: 'Analog Bass', track: 'bass', gmProgram: 39 },
-  { id: 'round', label: 'Round Bass', track: 'bass', gmProgram: 33 },
+  { id: 'round', label: 'Finger Bass', track: 'bass', gmProgram: 33 },
+  { id: 'upright', label: 'Upright Bass', track: 'bass', gmProgram: 32 },
   // Kits de batterie (exportés sur le canal 10, le programme n'a pas d'effet).
   { id: 'kit-808', label: 'Kit 808', track: 'drums', gmProgram: 0 },
   { id: 'kit-dusty', label: 'Kit Dusty', track: 'drums', gmProgram: 0 },

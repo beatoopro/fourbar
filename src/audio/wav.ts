@@ -3,7 +3,7 @@ import type { Composition } from '../core/types';
 import { TRACK_IDS } from '../core/types';
 import { LOOP_TICKS, PPQ, ticksToSeconds } from '../core/timing';
 import { swingNote } from '../core/drums';
-import { REVERB_SEND, createInstrument } from './instruments';
+import { REVERB_SEND, createInstrument, preloadInstrument } from './instruments';
 
 /**
  * Rendu hors-ligne en WAV. On joue la boucle deux fois et on garde le second
@@ -13,6 +13,8 @@ import { REVERB_SEND, createInstrument } from './instruments';
 export async function renderWav(comp: Composition): Promise<Blob> {
   const loopSec = ticksToSeconds(LOOP_TICKS, comp.bpm);
   const anySolo = TRACK_IDS.some((id) => comp.tracks[id].solo);
+  // Les échantillons doivent être prêts avant le rendu : il n'attend pas le réseau.
+  await Promise.all(TRACK_IDS.map((id) => preloadInstrument(comp.tracks[id].instrument)));
   const buffer = await Tone.Offline(async ({ transport }) => {
     transport.PPQ = PPQ;
     transport.bpm.value = comp.bpm;

@@ -1,15 +1,20 @@
 import * as Tone from 'tone';
 import { isDrumKit } from '../core/instruments';
 import { createDrumKit } from './drums';
+import { getLoadedBank, loadBank, type DecodedBank } from './samples';
 
 /**
- * Instruments 100 % synthétisés avec Tone.js (licence MIT) : aucun échantillon
- * externe, donc aucune question de licence sur les sons.
+ * Instruments : piano, piano électrique et basses jouent de vrais
+ * échantillons (public/samples, licences dans CREDITS.md) ; les autres sont
+ * synthétisés avec Tone.js. Chaque instrument échantillonné garde un synthé
+ * de secours, joué tant que ses fichiers chargent ou s'ils sont introuvables.
  * Les fabriques utilisent le contexte Tone courant, ce qui permet de les
  * réutiliser telles quelles pour le rendu hors-ligne (export WAV).
  */
 export interface InstrumentVoice {
   output: Tone.ToneAudioNode;
+  /** Résolue quand l'instrument joue son vrai son (échantillons chargés ou synthé de secours). */
+  ready?: Promise<void>;
   trigger(pitch: number, durationSec: number, time: number, velocity: number): void;
   releaseAll(): void;
   dispose(): void;
@@ -39,7 +44,82 @@ function voice(synth: Poly, chain: Tone.ToneAudioNode[] = []): InstrumentVoice {
   };
 }
 
-const factories: Record<string, () => InstrumentVoice> = {
+interface SampledDef {
+  bank: string;
+  /** Volume en dB, pour aligner le niveau des banques entre elles. */
+  volume: number;
+  /** Relâchement en secondes à la fin de la note (étouffoir, main sur la corde). */
+  release: number;
+  fallback: () => InstrumentVoice;
+  chain?: () => Tone.ToneAudioNode[];
+}
+
+function sampled(def: SampledDef): InstrumentVoice {
+  const context = Tone.getContext();
+  const out = new Tone.Gain({ context });
+  const fallback = def.fallback();
+  fallback.output.connect(out);
+  let sampler: Tone.Sampler | null = null;
+  let chain: Tone.ToneAudioNode[] = [];
+  let disposed = false;
+
+  const build = (bank: DecodedBank) => {
+    if (disposed || sampler) return;
+    // Le contexte est fixé à la création : la voix reste dans le bon contexte
+    // même si les fichiers arrivent pendant un rendu hors-ligne.
+    sampler = new Tone.Sampler({ context, urls: Object.fromEntries(bank), release: def.release, volume: def.volume });
+    chain = def.chain?.() ?? [];
+    let last: Tone.ToneAudioNode = sampler;
+    for (const node of chain) {
+      last.connect(node);
+      last = node;
+    }
+    last.connect(out);
+  };
+
+  const cached = getLoadedBank(def.bank);
+  if (cached) build(cached);
+  const ready = cached
+    ? Promise.resolve()
+    : loadBank(def.bank).then((bank) => {
+        if (bank) build(bank);
+      });
+
+  return {
+    output: out,
+    ready,
+    trigger(pitch, dur, time, velocity) {
+      if (sampler) sampler.triggerAttackRelease(Tone.Frequency(pitch, 'midi').toFrequency(), dur, time, velocity);
+      else fallback.trigger(pitch, dur, time, velocity);
+    },
+    releaseAll() {
+      sampler?.releaseAll();
+      fallback.releaseAll();
+    },
+    dispose() {
+      disposed = true;
+      sampler?.dispose();
+      chain.forEach((n) => n.dispose());
+      fallback.dispose();
+      out.dispose();
+    },
+  };
+}
+
+const SAMPLED: Record<string, Omit<SampledDef, 'fallback'>> = {
+  keys: { bank: 'piano', volume: 3, release: 0.45 },
+  epiano: {
+    bank: 'epiano',
+    volume: 9,
+    release: 0.35,
+    chain: () => [new Tone.Chorus({ frequency: 0.8, delayTime: 3, depth: 0.25, wet: 0.25 }).start()],
+  },
+  round: { bank: 'bass-finger', volume: 13, release: 0.08 },
+  upright: { bank: 'bass-upright', volume: 14, release: 0.1 },
+};
+
+/** Synthés joués pendant le chargement des échantillons (ou à leur place s'ils manquent). */
+const synths: Record<string, () => InstrumentVoice> = {
   keys: () => {
     const s = new Tone.PolySynth(Tone.FMSynth, {
       harmonicity: 3.01,
@@ -54,6 +134,8 @@ const factories: Record<string, () => InstrumentVoice> = {
     const chorus = new Tone.Chorus({ frequency: 0.6, delayTime: 3.5, depth: 0.35, wet: 0.35 }).start();
     return voice(s, [filter, chorus]);
   },
+  epiano: () => synths.keys(),
+  upright: () => synths.round(),
   pad: () => {
     const s = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: 'fatsawtooth', count: 3, spread: 22 },
@@ -142,5 +224,13 @@ export const REVERB_SEND: Record<string, number> = { chords: 1, melody: 1, bass:
 
 export function createInstrument(id: string): InstrumentVoice {
   if (isDrumKit(id)) return createDrumKit(id);
-  return (factories[id] ?? factories.keys)();
+  const def = SAMPLED[id];
+  if (def) return sampled({ ...def, fallback: synths[id] });
+  return (synths[id] ?? (() => createInstrument('keys')))();
+}
+
+/** Charge à l'avance les échantillons d'un instrument (indispensable avant un rendu hors-ligne). */
+export async function preloadInstrument(id: string): Promise<void> {
+  const def = SAMPLED[id];
+  if (def) await loadBank(def.bank);
 }
