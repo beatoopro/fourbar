@@ -1,6 +1,7 @@
 import type { Composition } from '../../core/types';
 import { cloneComposition, normalizeComposition } from '../../core/composition';
 import { LOOP_TICKS, PPQ } from '../../core/timing';
+import { matchesFilters } from '../../core/search';
 import { uid } from '../../core/composition';
 import type { CommentSort, CommunityApi, FeedQuery, LoopComment, NewComment, Publication, User } from '../types';
 import { COMMENT_MAX_LENGTH } from '../types';
@@ -151,6 +152,19 @@ export class LocalCommunityApi implements CommunityApi {
     if (q.remixesOnly) list = list.filter((p) => !!p.composition.remixOf);
     if (q.genre) list = list.filter((p) => p.composition.genres.includes(q.genre!));
     if (q.mood) list = list.filter((p) => p.composition.moods.includes(q.mood!));
+    if (q.filters) {
+      const f = q.filters;
+      const now = Date.now();
+      list = list.filter((p) => matchesFilters(p.composition, p.publishedAt, f, now));
+      const artist = f.artist?.trim().toLowerCase().replace(/^@/, '');
+      if (artist) {
+        const users = await this.listUsers();
+        list = list.filter((p) => {
+          const author = users.find((u) => u.id === p.authorId);
+          return !!author && (author.name.toLowerCase().includes(artist) || author.handle.toLowerCase().includes(artist));
+        });
+      }
+    }
     if (q.search?.trim()) {
       const users = await this.listUsers();
       const s = q.search.trim().toLowerCase();
