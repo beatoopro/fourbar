@@ -467,3 +467,13 @@ a {
     padding: 20px 16px 48px;
   }
 }
+
+.crash {
+  max-width: 520px;
+  margin: 80px auto;
+  padding: 0 16px;
+  text-align: center;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}

@@ -4,6 +4,7 @@ import { CreatePage } from './pages/CreatePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { useCommunity } from './community/store';
 import { ME_ID } from './services';
+import { ErrorBoundary } from './ui/ErrorBoundary';
 import { Avatar, Toaster, navigate, useRoute } from './ui/common';
 
 export function App() {
@@ -46,13 +47,15 @@ export function App() {
         </div>
       </header>
       <main className={`main ${section === 'create' ? 'no-scroll' : ''}`}>
-        {section === 'create' ? (
-          <CreatePage />
-        ) : section === 'profile' ? (
-          <ProfilePage userId={path[1] ?? ME_ID} />
-        ) : (
-          <ExplorePage highlight={query.get('highlight')} />
-        )}
+        <ErrorBoundary key={section}>
+          {section === 'create' ? (
+            <CreatePage />
+          ) : section === 'profile' ? (
+            <ProfilePage userId={path[1] ?? ME_ID} />
+          ) : (
+            <ExplorePage highlight={query.get('highlight')} />
+          )}
+        </ErrorBoundary>
       </main>
       <Toaster />
     </div>

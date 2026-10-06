@@ -64,8 +64,13 @@ export class LocalCommunityApi implements CommunityApi {
     write(KEYS.seeded, SEED_VERSION);
   }
 
+  /** Les données d'une version précédente (ex. loops à 3 pistes, sans batterie) sont remises au format courant à la lecture. */
   private pubs(): Publication[] {
-    return read<Publication[]>(KEYS.pubs, []);
+    return read<Publication[]>(KEYS.pubs, []).map((p) => ({ ...p, composition: normalizeComposition(p.composition) }));
+  }
+
+  private drafts(): Composition[] {
+    return read<Composition[]>(KEYS.drafts, []).map(normalizeComposition);
   }
 
   async getCurrentUser(): Promise<User> {
@@ -179,15 +184,15 @@ export class LocalCommunityApi implements CommunityApi {
   }
 
   async listDrafts(): Promise<Composition[]> {
-    return read<Composition[]>(KEYS.drafts, []).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    return this.drafts().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   }
 
   async saveDraft(composition: Composition): Promise<void> {
-    const drafts = read<Composition[]>(KEYS.drafts, []).filter((d) => d.id !== composition.id);
+    const drafts = this.drafts().filter((d) => d.id !== composition.id);
     write(KEYS.drafts, [{ ...cloneComposition(composition), updatedAt: new Date().toISOString() }, ...drafts]);
   }
 
   async deleteDraft(id: string): Promise<void> {
-    write(KEYS.drafts, read<Composition[]>(KEYS.drafts, []).filter((d) => d.id !== id));
+    write(KEYS.drafts, this.drafts().filter((d) => d.id !== id));
   }
 }
