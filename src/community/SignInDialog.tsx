@@ -59,6 +59,14 @@ function Dialog({ reason }: { reason: AuthReason }) {
     if (step !== 'profile') closeAuthPrompt(false);
   };
 
+  // Changer de page (lien, bouton Précédent) annule la demande : la fenêtre ne reste pas par-dessus une autre page.
+  useEffect(() => {
+    if (step === 'profile') return;
+    const onRoute = () => closeAuthPrompt(false);
+    window.addEventListener('hashchange', onRoute);
+    return () => window.removeEventListener('hashchange', onRoute);
+  }, [step]);
+
   const run = async (fn: () => Promise<void>) => {
     setBusy(true);
     setError(null);
@@ -214,7 +222,17 @@ function Dialog({ reason }: { reason: AuthReason }) {
             </div>
             <label className="check auth-consent">
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-              <span>I’m 15 or older and I accept the Terms of Use and the Privacy Policy.</span>
+              <span>
+                I’m 15 or older and I accept the{' '}
+                <a href="#/terms" target="_blank" rel="noreferrer">
+                  Terms of Use
+                </a>{' '}
+                and the{' '}
+                <a href="#/privacy" target="_blank" rel="noreferrer">
+                  Privacy Policy
+                </a>
+                .
+              </span>
             </label>
             <button className="btn primary auth-wide" type="submit" disabled={busy || !consent || !name.trim() || !handleOk}>
               {reason.kind === 'publish' ? 'Publish my loop' : 'Continue'}
