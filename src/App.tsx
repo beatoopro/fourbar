@@ -3,6 +3,7 @@ import { ExplorePage } from './pages/ExplorePage';
 import { CreatePage } from './pages/CreatePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { LoopPage } from './pages/LoopPage';
+import { CreditsPage, PrivacyPage, SiteFooter, TermsPage } from './pages/LegalPages';
 import { useCommunity } from './community/store';
 import { ensureAccount } from './community/auth';
 import { SignInDialog } from './community/SignInDialog';
@@ -66,10 +67,17 @@ export function App() {
             <LoopPage id={decodeURIComponent(path[1])} data={query.get('d')} focus={query.get('focus')} />
           ) : section === 'profile' ? (
             <ProfilePage userId={path[1] ?? ME_ID} />
+          ) : section === 'terms' ? (
+            <TermsPage />
+          ) : section === 'privacy' ? (
+            <PrivacyPage />
+          ) : section === 'credits' ? (
+            <CreditsPage />
           ) : (
             <ExplorePage query={query} />
           )}
         </ErrorBoundary>
+        {section !== 'create' && <SiteFooter />}
       </main>
       <SignInDialog />
       <Toaster />
