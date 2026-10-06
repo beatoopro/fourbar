@@ -1,9 +1,10 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { BAR, BEATS_PER_BAR, BARS, PPQ } from '../core/timing';
 import { engine } from '../audio/engine';
-import { api, COMMENT_MAX_LENGTH, ME_ID, type CommentSort, type LoopComment, type Publication } from '../services';
+import { api, COMMENT_MAX_LENGTH, type CommentSort, type LoopComment, type Publication } from '../services';
 import { Avatar, navigate, timeAgo, toast } from '../ui/common';
 import { useCommunity } from './store';
+import { ensureAccount } from './auth';
 import { anchorLabel, loopPath, snapToBeat } from './loopLink';
 import * as I from '../ui/Icons';
 
@@ -104,6 +105,8 @@ function Composer({
     if (!body.trim() || busy) return;
     setBusy(true);
     try {
+      // Le texte reste dans le champ pendant la connexion, puis il est posté.
+      if (!(await ensureAccount({ kind: 'comment' }))) return;
       const c = await api.addComment(pubId, { body, parentId, anchorTick: allowAnchor ? anchor : null });
       setBody('');
       setAnchor(null);
@@ -204,6 +207,7 @@ export function Comments({
 }) {
   const users = useCommunity((s) => s.users);
   const bump = useCommunity((s) => s.bump);
+  const meId = useCommunity((s) => s.me?.id ?? null);
   const [sort, setSort] = useState<CommentSort>('recent');
   const [comments, setComments] = useState<LoopComment[] | null>(null);
   const [replyTo, setReplyTo] = useState<{ threadId: string; mention: string } | null>(null);
@@ -224,7 +228,7 @@ export function Comments({
     setExpanded(new Set());
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pub.id, sort]);
+  }, [pub.id, sort, meId]);
 
   // Titres des loops liées (« J'ai remixé cette loop »), pour afficher un lien lisible.
   useEffect(() => {
@@ -243,11 +247,11 @@ export function Comments({
   const tops = comments.filter((c) => !c.parentId);
   const repliesOf = (id: string) => comments.filter((c) => c.parentId === id);
   const total = comments.filter((c) => !c.deleted).length;
-  const loopIsMine = pub.authorId === ME_ID;
+  const loopIsMine = meId !== null && pub.authorId === meId;
 
   const item = (c: LoopComment, threadId: string) => {
     const author = users[c.authorId];
-    const mine = c.authorId === ME_ID;
+    const mine = meId !== null && c.authorId === meId;
     const active = activeTick !== null && c.anchorTick !== null && activeTick >= c.anchorTick && activeTick < c.anchorTick + 2 * PPQ;
     if (c.deleted) {
       return (
@@ -284,6 +288,7 @@ export function Comments({
             <button
               className={c.likedByMe ? 'liked' : ''}
               onClick={async () => {
+                if (!(await ensureAccount({ kind: 'like' }))) return;
                 const r = await api.toggleCommentLike(c.id);
                 setComments((list) => list?.map((x) => (x.id === c.id ? { ...x, likedByMe: r.liked, likes: r.likes } : x)) ?? null);
               }}
@@ -308,6 +313,7 @@ export function Comments({
               <button
                 className="cm-report"
                 onClick={async () => {
+                  if (!(await ensureAccount({ kind: 'report' }))) return;
                   if (!confirm('Report this comment? It will be hidden for you.')) return;
                   await api.reportComment(c.id, 'inappropriate');
                   await load();

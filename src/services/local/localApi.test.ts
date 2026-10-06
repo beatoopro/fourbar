@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { LocalCommunityApi } from './localApi';
+import { AuthRequiredError } from '../types';
 
 const store = new Map<string, string>();
 globalThis.localStorage = {
@@ -30,6 +31,12 @@ const v1Comp = (id: string) => ({
   },
 });
 
+/** Navigateur avec un compte local déjà connecté. */
+function asMember() {
+  store.set('4chords:v1:session', 'true');
+  store.set('4chords:v1:account', 'true');
+}
+
 describe('données locales d’une version précédente', () => {
   beforeEach(() => {
     store.clear();
@@ -49,7 +56,10 @@ describe('données locales d’une version précédente', () => {
 });
 
 describe('commentaires', () => {
-  beforeEach(() => store.clear());
+  beforeEach(() => {
+    store.clear();
+    asMember();
+  });
 
   it('ajoute les commentaires de démo sans toucher aux loops publiées', async () => {
     store.set('4chords:v1:seeded', '3');
@@ -135,6 +145,7 @@ describe('passage de l’interface en anglais', () => {
     store.set('4chords:v1:comments', JSON.stringify(comments));
     store.set('4chords:v1:me', JSON.stringify({ name: 'Vous', handle: 'vous', bio: 'Ma bio' }));
     store.set('4chords:v1:seeded', '2');
+    asMember();
 
     const api = new LocalCommunityApi();
     expect((await api.getPublication('seed_1'))?.composition.title).toBe('Morning Coffee');
@@ -143,6 +154,68 @@ describe('passage de l’interface en anglais', () => {
     expect(mine?.composition.moods).toEqual(['Dreamy']);
     expect((await api.listComments('seed_1')).find((c) => c.id === 'seedc_seed_1_a')?.body).toMatch(/^That move to the IV/);
     const me = await api.getCurrentUser();
-    expect([me.name, me.handle, me.bio]).toEqual(['You', 'you', 'Ma bio']);
+    expect([me!.name, me!.handle, me!.bio]).toEqual(['You', 'you', 'Ma bio']);
+  });
+});
+
+describe('comptes', () => {
+  beforeEach(() => store.clear());
+
+  it('un nouveau visiteur est invité : il lit tout mais ne peut ni publier, ni liker, ni commenter', async () => {
+    const api = new LocalCommunityApi();
+    expect(await api.getCurrentUser()).toBeNull();
+    expect(await api.getLikedIds()).toEqual([]);
+    expect((await api.listPublications()).length).toBeGreaterThan(10);
+    expect((await api.listComments('seed_1')).length).toBeGreaterThan(0);
+    await expect(api.publish(v1Comp('x') as never)).rejects.toThrow(AuthRequiredError);
+    await expect(api.toggleLike('seed_1')).rejects.toThrow(AuthRequiredError);
+    await expect(api.addComment('seed_1', { body: 'Salut' })).rejects.toThrow(AuthRequiredError);
+    await expect(api.updateCurrentUser({ name: 'X' })).rejects.toThrow(AuthRequiredError);
+  });
+
+  it('un navigateur déjà utilisé avant les comptes reste connecté', async () => {
+    store.set('4chords:v1:seeded', '3');
+    const api = new LocalCommunityApi();
+    expect(await api.getCurrentUser()).not.toBeNull();
+  });
+
+  it('inscription par e-mail : code vérifié, pseudo proposé, brouillons invités rattachés', async () => {
+    const api = new LocalCommunityApi();
+    await api.saveDraft(v1Comp('g1') as never);
+    await api.saveDraft(v1Comp('g2') as never);
+    await expect(api.requestEmailCode('pas-un-email')).rejects.toThrow();
+    const { demoCode } = await api.requestEmailCode('Victor.B@example.com');
+    await expect(api.signIn({ provider: 'email', email: 'victor.b@example.com', code: '000000' })).rejects.toThrow();
+    const r = await api.signIn({ provider: 'email', email: 'victor.b@example.com', code: demoCode! });
+    expect(r.isNew).toBe(true);
+    expect(r.importedDrafts).toBe(2);
+    expect(r.user).toMatchObject({ name: 'Victor B', handle: 'victor.b' });
+    expect(await api.getLikedIds()).toEqual([]);
+    expect((await api.listDrafts()).map((d) => d.id).sort()).toEqual(['g1', 'g2']);
+    // Un code ne sert qu'une fois.
+    await api.signOut();
+    await expect(api.signIn({ provider: 'email', email: 'victor.b@example.com', code: demoCode! })).rejects.toThrow();
+  });
+
+  it('déconnexion : les brouillons restent sur le compte, le navigateur repart vide ; reconnexion sans écraser', async () => {
+    const api = new LocalCommunityApi();
+    await api.signIn({ provider: 'google' });
+    await api.saveDraft({ ...v1Comp('d1'), title: 'compte' } as never);
+    await api.signOut();
+    expect(await api.listDrafts()).toEqual([]);
+    expect(await api.getCurrentUser()).toBeNull();
+    await api.saveDraft({ ...v1Comp('d2'), title: 'invité' } as never);
+    const r = await api.signIn({ provider: 'google' });
+    expect(r).toMatchObject({ isNew: false, importedDrafts: 1 });
+    expect((await api.listDrafts()).map((d) => d.title).sort()).toEqual(['compte', 'invité']);
+  });
+
+  it('pseudo : format et disponibilité vérifiés', async () => {
+    const api = new LocalCommunityApi();
+    await api.signIn({ provider: 'google' });
+    await expect(api.updateCurrentUser({ handle: 'ab' })).rejects.toThrow();
+    await expect(api.updateCurrentUser({ handle: 'linabeats' })).rejects.toThrow(/taken/);
+    expect((await api.updateCurrentUser({ handle: '@Élodie Beats', name: '  Élodie ' })).handle).toBe('elodiebeats');
+    expect((await api.getCurrentUser())!.name).toBe('Élodie');
   });
 });

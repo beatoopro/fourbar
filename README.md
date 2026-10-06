@@ -115,8 +115,13 @@ Le son démarre au premier clic (règle des navigateurs).
 
 ## Ce qui est simulé
 
-- **Utilisateurs** : 8 profils fictifs et votre profil « Vous » ; aucune
-  authentification.
+- **Utilisateurs** : 8 profils fictifs et votre compte local. La connexion
+  (Google ou e-mail + code à 6 chiffres) est simulée : « Continue with Google »
+  connecte directement, et le code e-mail s'affiche à l'écran au lieu d'être
+  envoyé. Sans compte, on écoute, compose, remixe et télécharge une fois ; publier,
+  liker, commenter et télécharger à nouveau ouvrent la fenêtre de connexion, puis
+  l'action reprend toute seule. Les brouillons faits en invité passent sur le
+  compte à la connexion (voir `design/comptes.md` dans le projet).
 - **Publications** : 26 boucles de démonstration générées au premier lancement
   (dont 4 remixes), chacune avec une batterie adaptée à son genre. Likes et
   écoutes sont des compteurs locaux.
@@ -183,7 +188,8 @@ la sélectionner dans `src/services/index.ts`. Les pages n'appellent que cette
 interface (méthodes asynchrones), donc rien d'autre ne change. Le format
 `Composition` est versionné (`version: 1`) et contient toutes les informations
 MIDI, il peut être stocké tel quel en JSON côté serveur. L'authentification se
-branche au même endroit (`getCurrentUser`).
+branche au même endroit (`getCurrentUser`, `requestEmailCode`, `signIn`,
+`signOut`) ; les actions qui demandent un compte renvoient `AuthRequiredError`.
 
 ## Dépendances et licences
 

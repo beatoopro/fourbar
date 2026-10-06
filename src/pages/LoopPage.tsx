@@ -9,7 +9,8 @@ import { MiniPreview, PublicationCard, openRemix } from '../community/Publicatio
 import { Comments } from '../community/Comments';
 import { useCommunity } from '../community/store';
 import { anchorLabel, loopPath, shareLink, shareUrl } from '../community/loopLink';
-import { api, ME_ID, type LoopComment, type Publication } from '../services';
+import { ensureDownloadAllowed } from '../community/auth';
+import { api, type LoopComment, type Publication } from '../services';
 import { Avatar, navigate, timeAgo, toast, useEngineState } from '../ui/common';
 import * as I from '../ui/Icons';
 
@@ -18,6 +19,7 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
   const users = useCommunity((s) => s.users);
   const likedSet = useCommunity((s) => s.liked);
   const toggleLike = useCommunity((s) => s.toggleLike);
+  const me = useCommunity((s) => s.me);
   const version = useCommunity((s) => s.version);
   const engineState = useEngineState();
   const [pub, setPub] = useState<Publication | null | undefined>(undefined);
@@ -128,6 +130,7 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
   };
 
   const wav = async () => {
+    if (!(await ensureDownloadAllowed())) return;
     setRendering(true);
     try {
       downloadBlob(await renderWav(c), midiFileName(c).replace(/\.mid$/, '.wav'), 'audio/wav');
@@ -229,7 +232,10 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
           {!shared && (
             <button
               className={`btn ${liked ? 'liked' : ''}`}
-              onClick={async () => setLikes(await toggleLike(pub))}
+              onClick={async () => {
+                const n = await toggleLike(pub);
+                if (n !== null) setLikes(n);
+              }}
               title={liked ? 'Unlike' : 'Like'}
             >
               <I.Heart size={15} filled={liked} /> {likes}
@@ -243,7 +249,8 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
           </button>
           <button
             className="btn"
-            onClick={() => {
+            onClick={async () => {
+              if (!(await ensureDownloadAllowed())) return;
               downloadMidi(c);
               toast('MIDI downloaded');
             }}
@@ -254,7 +261,7 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
             <I.Wave size={15} /> {rendering ? 'Rendering…' : 'WAV'}
           </button>
           <button className="btn primary" onClick={() => openRemix(pub)}>
-            <I.Remix size={15} /> {pub.authorId === ME_ID ? 'Edit' : 'Remix'}
+            <I.Remix size={15} /> {pub.authorId === me?.id ? 'Edit' : 'Remix'}
           </button>
         </div>
       </div>
