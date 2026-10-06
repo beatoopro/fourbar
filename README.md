@@ -91,6 +91,16 @@ Le son démarre au premier clic (règle des navigateurs).
 - Remix : ouvre la création dans l'éditeur comme nouvelle composition liée à
   l'original (« Remix de … » sur la carte).
 - Profils : créations, remixes, favoris, brouillons, nom et bio modifiables.
+- Page de chaque loop (`#/loop/<id>`) : grand aperçu (clic = écouter à partir
+  de cet endroit), infos, j'aime, MIDI, WAV, remix, liste de ses remixes et
+  bouton Partager.
+- Commentaires sur la page d'une loop : réponses (un niveau), j'aime,
+  suppression (les siens, et tous ceux sous ses propres loops), signalement.
+  Un commentaire peut viser un moment de la loop (« Mesure 3 · temps 2 ») :
+  repère sur l'aperçu, clic pour écouter à cet endroit. En écrivant pendant
+  la lecture, le moment est rempli automatiquement.
+- En publiant un remix, un commentaire « J'ai remixé cette loop » peut être
+  laissé sur l'original (case cochée par défaut).
 
 ## Ce qui est simulé
 
@@ -99,6 +109,14 @@ Le son démarre au premier clic (règle des navigateurs).
 - **Publications** : 26 boucles de démonstration générées au premier lancement
   (dont 4 remixes), chacune avec une batterie adaptée à son genre. Likes et
   écoutes sont des compteurs locaux.
+- **Commentaires** : une soixantaine de commentaires de démonstration ; les
+  signalements sont seulement enregistrés localement (le commentaire est
+  masqué pour vous).
+- **Partage** : sans serveur, une loop que vous avez créée n'existe que dans
+  votre navigateur. Le lien de partage contient donc la loop elle-même,
+  compressée dans l'adresse ; chez le destinataire elle s'ouvre en lecture
+  seule (écoute, MIDI, WAV, remix), sans commentaires. Les loops de démo ont
+  un lien court.
 - **Stockage** : tout est dans le `localStorage` du navigateur. Les données
   sont propres à ce navigateur et à cette adresse (http://localhost:5173) ;
   vider les données du site remet la démo à zéro.

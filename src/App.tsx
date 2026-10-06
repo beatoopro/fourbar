@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { ExplorePage } from './pages/ExplorePage';
 import { CreatePage } from './pages/CreatePage';
 import { ProfilePage } from './pages/ProfilePage';
+import { LoopPage } from './pages/LoopPage';
 import { useCommunity } from './community/store';
 import { ME_ID } from './services';
 import { ErrorBoundary } from './ui/ErrorBoundary';
@@ -50,6 +51,8 @@ export function App() {
         <ErrorBoundary key={section}>
           {section === 'create' ? (
             <CreatePage />
+          ) : section === 'loop' && path[1] ? (
+            <LoopPage id={decodeURIComponent(path[1])} data={query.get('d')} focus={query.get('focus')} />
           ) : section === 'profile' ? (
             <ProfilePage userId={path[1] ?? ME_ID} />
           ) : (

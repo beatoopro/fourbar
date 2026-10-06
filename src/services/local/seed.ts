@@ -240,6 +240,7 @@ export function buildSeedPublications(): Publication[] {
       likes: spec.likes,
       plays: spec.likes * 6 + ((i * 37) % 200),
       publishedAt: composition.createdAt,
+      commentCount: 0,
     };
   });
 
@@ -256,7 +257,7 @@ export function buildSeedPublications(): Publication[] {
     const date = new Date(Date.now() - daysAgo * 86400000).toISOString();
     c.createdAt = date;
     c.updatedAt = date;
-    pubs.push({ id: c.id, composition: c, authorId: author, likes, plays: likes * 5, publishedAt: date });
+    pubs.push({ id: c.id, composition: c, authorId: author, likes, plays: likes * 5, publishedAt: date, commentCount: 0 });
   };
   remix(0, 'u_jade', 'Café du matin (boom bap flip)', (c) => {
     c.bpm = 90;

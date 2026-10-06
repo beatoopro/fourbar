@@ -14,6 +14,7 @@ import { TRACK_IDS } from '../core/types';
 import { createComposition, noteCount } from '../core/composition';
 import { downloadBlob, downloadMidi, midiFileName, midiToComposition } from '../core/midi';
 import { PublishDialog } from '../community/PublishDialog';
+import { loopPath } from '../community/loopLink';
 import { useCommunity } from '../community/store';
 import { api, ME_ID } from '../services';
 import { navigate, toast, useEngineState } from '../ui/common';
@@ -291,7 +292,7 @@ export function CreatePage() {
             useEditor.getState().markSaved();
             bump();
             toast('Publiée ! Votre boucle est visible dans Explore.');
-            navigate(`/explore?highlight=${p.id}`);
+            navigate(loopPath(p.id));
           }}
         />
       )}

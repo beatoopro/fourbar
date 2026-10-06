@@ -11,6 +11,7 @@ import { api, ME_ID, type Publication } from '../services';
 import { Avatar, navigate, timeAgo, toast, useEngineState } from '../ui/common';
 import { useCommunity } from './store';
 import * as I from '../ui/Icons';
+import { loopPath } from './loopLink';
 
 /** Bande de la batterie en bas de l'aperçu : cymbales/hats, snare/clap/toms, kick. */
 const DRUM_ROW: Record<number, number> = { 49: 0, 51: 0, 46: 0, 42: 0, 70: 0, 50: 1, 45: 1, 39: 1, 38: 1, 36: 2 };
@@ -122,16 +123,16 @@ export function PublicationCard({ pub, highlight }: { pub: Publication; highligh
         </button>
       </div>
       <div className="card-body">
-        <div className="card-title" title={c.title}>
+        <button className="card-title" title={c.title} onClick={() => navigate(loopPath(pub.id))}>
           {c.title}
-        </div>
+        </button>
         <button className="card-author" onClick={() => navigate(`/profile/${pub.authorId}`)}>
           <Avatar user={author} size={18} />
           <span>{author?.name ?? 'Inconnu'}</span>
           <span className="muted">· {timeAgo(pub.publishedAt)}</span>
         </button>
         {original && (
-          <button className="card-remix-of" onClick={() => navigate(`/profile/${original.authorId}`)}>
+          <button className="card-remix-of" onClick={() => navigate(loopPath(original.id))}>
             <I.Remix size={12} /> Remix de « {original.composition.title} »
           </button>
         )}
@@ -157,6 +158,9 @@ export function PublicationCard({ pub, highlight }: { pub: Publication; highligh
           title={liked ? 'Retirer des favoris' : 'J’aime'}
         >
           <I.Heart size={15} filled={liked} /> {likes}
+        </button>
+        <button className="act" onClick={() => navigate(loopPath(pub.id, 'comments'))} title="Commentaires">
+          <I.Comment size={15} /> {pub.commentCount}
         </button>
         <button
           className="act"

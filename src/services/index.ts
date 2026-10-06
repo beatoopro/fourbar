@@ -9,4 +9,5 @@ import { LocalCommunityApi } from './local/localApi';
 export const api: CommunityApi = new LocalCommunityApi();
 
 export { ME_ID } from './local/seed';
-export type { CommunityApi, Publication, User, FeedQuery, FeedSort } from './types';
+export type { CommunityApi, Publication, User, FeedQuery, FeedSort, LoopComment, CommentSort, NewComment } from './types';
+export { COMMENT_MAX_LENGTH, remixNoteBody } from './types';

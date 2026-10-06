@@ -47,3 +47,75 @@ describe('données locales d’une version précédente', () => {
     expect(draft.tracks.drums.notes).toEqual([]);
   });
 });
+
+describe('commentaires', () => {
+  beforeEach(() => store.clear());
+
+  it('ajoute les commentaires de démo sans toucher aux loops publiées', async () => {
+    store.set('4chords:v1:seeded', '2');
+    store.set('4chords:v1:publications', JSON.stringify([{ id: 'mine', composition: v1Comp('mine'), authorId: 'me', likes: 3, plays: 0, publishedAt: '2026-10-01T00:00:00.000Z' }]));
+    const api = new LocalCommunityApi();
+    expect((await api.listPublications()).map((p) => p.id)).toEqual(['mine']);
+    expect(await api.listComments('mine')).toEqual([]);
+    expect(store.get('4chords:v1:commentsSeeded')).toBe('true');
+  });
+
+  it('compte les commentaires de démo et calcule le like de l’utilisateur', async () => {
+    const api = new LocalCommunityApi();
+    const pub = await api.getPublication('seed_1');
+    const list = await api.listComments('seed_1');
+    expect(pub!.commentCount).toBe(list.length);
+    expect(list.length).toBeGreaterThan(5);
+    expect(list.find((c) => c.id === 'seedc_seed_1_a')?.likedByMe).toBe(true);
+    expect(list.some((c) => c.linkedPublicationId === 'seed_remix_0_u_jade')).toBe(true);
+    for (const c of list) expect(new Date(c.createdAt).getTime()).toBeLessThanOrEqual(Date.now());
+  });
+
+  it('valide, rattache les réponses de réponses au même fil et arrondit l’ancrage au temps', async () => {
+    const api = new LocalCommunityApi();
+    await expect(api.addComment('seed_2', { body: '   ' })).rejects.toThrow();
+    await expect(api.addComment('seed_2', { body: 'x'.repeat(501) })).rejects.toThrow();
+    await expect(api.addComment('nope', { body: 'Salut' })).rejects.toThrow();
+    const top = await api.addComment('seed_2', { body: '  Super  ', anchorTick: 100 });
+    expect(top.body).toBe('Super');
+    expect(top.anchorTick).toBe(96);
+    const r1 = await api.addComment('seed_2', { body: 'Merci', parentId: top.id, anchorTick: 300 });
+    const r2 = await api.addComment('seed_2', { body: '@vous oui', parentId: r1.id });
+    expect(r1.parentId).toBe(top.id);
+    expect(r1.anchorTick).toBeNull();
+    expect(r2.parentId).toBe(top.id);
+  });
+
+  it('suppression : la sienne, celles sous ses loops, pas celles des autres ailleurs', async () => {
+    const api = new LocalCommunityApi();
+    await expect(api.deleteComment('seedc_seed_1_a')).rejects.toThrow();
+    const mine = await api.publish(v1Comp('mypub') as never);
+    const c = await api.addComment(mine.id, { body: 'Mon commentaire' });
+    // Un commentaire d'un autre utilisateur sous ma loop.
+    const raw = JSON.parse(store.get('4chords:v1:comments')!);
+    raw.push({ ...raw.find((x: { id: string }) => x.id === c.id), id: 'other', authorId: 'u_lina', parentId: c.id });
+    store.set('4chords:v1:comments', JSON.stringify(raw));
+    // Avec une réponse, le commentaire devient « supprimé » mais reste.
+    await api.deleteComment(c.id);
+    let list = await api.listComments(mine.id);
+    expect(list.find((x) => x.id === c.id)).toMatchObject({ deleted: true, body: '' });
+    expect((await api.getPublication(mine.id))!.commentCount).toBe(1);
+    // L'auteur de la loop supprime la réponse : le parent vide disparaît aussi.
+    await api.deleteComment('other');
+    list = await api.listComments(mine.id);
+    expect(list).toEqual([]);
+  });
+
+  it('likes, signalement et suppression de la loop', async () => {
+    const api = new LocalCommunityApi();
+    const before = (await api.listComments('seed_3')).find((c) => c.id === 'seedc_seed_3_a')!;
+    const r = await api.toggleCommentLike(before.id);
+    expect(r).toEqual({ liked: true, likes: before.likes + 1 });
+    await api.reportComment('seedc_seed_3_b', 'spam');
+    expect((await api.listComments('seed_3')).some((c) => c.id === 'seedc_seed_3_b')).toBe(false);
+    const mine = await api.publish(v1Comp('gone') as never);
+    await api.addComment(mine.id, { body: 'test' });
+    await api.deletePublication(mine.id);
+    expect(JSON.parse(store.get('4chords:v1:comments')!).some((c: { publicationId: string }) => c.publicationId === mine.id)).toBe(false);
+  });
+});

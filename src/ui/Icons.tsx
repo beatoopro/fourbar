@@ -174,3 +174,29 @@ export const Metronome = (p: P) => (
     <path d="M8 21h8l-2-17h-4zM12 15l5-8" />
   </svg>
 );
+export const Comment = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M5 5h14a1 1 0 011 1v10a1 1 0 01-1 1h-8l-4 3v-3H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
+  </svg>
+);
+export const Share = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M12 15V4m0 0L8 8m4-4l4 4M6 12v7a1 1 0 001 1h10a1 1 0 001-1v-7" />
+  </svg>
+);
+export const Flag = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M6 21V4m0 0h11l-2 4 2 4H6" />
+  </svg>
+);
+export const ArrowLeft = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M19 12H5M11 6l-6 6 6 6" />
+  </svg>
+);
+export const Pin = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M12 21s-6-5.3-6-10a6 6 0 0112 0c0 4.7-6 10-6 10z" />
+    <circle cx="12" cy="11" r="2" />
+  </svg>
+);

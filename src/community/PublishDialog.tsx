@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Composition } from '../core/types';
 import { GENRES, MOODS } from './constants';
-import { api, type Publication } from '../services';
+import { api, ME_ID, remixNoteBody, type Publication } from '../services';
 
 /**
  * Publication en une étape : titre + genre suffisent. Ambiances facultatives ;
@@ -21,13 +21,17 @@ export function PublishDialog({
   const [moods, setMoods] = useState<string[]>(comp.moods);
   const [busy, setBusy] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
+  /** Original d'un remix : on propose de prévenir son auteur par un commentaire. */
+  const [original, setOriginal] = useState<Publication | null>(null);
+  const [notify, setNotify] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
     inputRef.current?.select();
     void api.getPublication(comp.id).then((p) => setIsUpdate(!!p));
-  }, [comp.id]);
+    if (comp.remixOf) void api.getPublication(comp.remixOf).then((o) => setOriginal(o && o.authorId !== ME_ID ? o : null));
+  }, [comp.id, comp.remixOf]);
 
   const toggle = (list: string[], v: string, max: number) =>
     list.includes(v) ? list.filter((x) => x !== v) : [...list, v].slice(-max);
@@ -38,6 +42,9 @@ export function PublishDialog({
     if (!canPublish) return;
     setBusy(true);
     const pub = await api.publish({ ...comp, title: title.trim(), genres, moods });
+    if (original && notify && !isUpdate) {
+      await api.addComment(original.id, { body: remixNoteBody(pub.composition.title), linkedPublicationId: pub.id }).catch(() => undefined);
+    }
     onPublished(pub);
   };
 
@@ -87,6 +94,12 @@ export function PublishDialog({
             ))}
           </div>
         </div>
+        {original && !isUpdate && (
+          <label className="check">
+            <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
+            Laisser un commentaire sur « {original.composition.title} » pour annoncer ce remix
+          </label>
+        )}
         <div className="modal-actions">
           <button type="button" className="btn ghost" onClick={onClose}>
             Annuler
