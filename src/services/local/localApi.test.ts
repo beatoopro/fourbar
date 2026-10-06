@@ -52,7 +52,7 @@ describe('commentaires', () => {
   beforeEach(() => store.clear());
 
   it('ajoute les commentaires de démo sans toucher aux loops publiées', async () => {
-    store.set('4chords:v1:seeded', '2');
+    store.set('4chords:v1:seeded', '3');
     store.set('4chords:v1:publications', JSON.stringify([{ id: 'mine', composition: v1Comp('mine'), authorId: 'me', likes: 3, plays: 0, publishedAt: '2026-10-01T00:00:00.000Z' }]));
     const api = new LocalCommunityApi();
     expect((await api.listPublications()).map((p) => p.id)).toEqual(['mine']);
@@ -117,5 +117,32 @@ describe('commentaires', () => {
     await api.addComment(mine.id, { body: 'test' });
     await api.deletePublication(mine.id);
     expect(JSON.parse(store.get('4chords:v1:comments')!).some((c: { publicationId: string }) => c.publicationId === mine.id)).toBe(false);
+  });
+});
+
+describe('passage de l’interface en anglais', () => {
+  beforeEach(() => store.clear());
+
+  it('traduit le contenu de démo et le profil par défaut, sans toucher au contenu de l’utilisateur', async () => {
+    new LocalCommunityApi();
+    // Simule des données enregistrées avant la traduction.
+    const pubs = JSON.parse(store.get('4chords:v1:publications')!);
+    pubs.find((p: { id: string }) => p.id === 'seed_1').composition.title = 'Café du matin';
+    pubs.push({ id: 'mine', composition: { ...v1Comp('mine'), moods: ['Rêveur'] }, authorId: 'me', likes: 0, plays: 0, publishedAt: '2026-10-01T00:00:00.000Z' });
+    store.set('4chords:v1:publications', JSON.stringify(pubs));
+    const comments = JSON.parse(store.get('4chords:v1:comments')!);
+    comments.find((c: { id: string }) => c.id === 'seedc_seed_1_a').body = 'Le passage au IV…';
+    store.set('4chords:v1:comments', JSON.stringify(comments));
+    store.set('4chords:v1:me', JSON.stringify({ name: 'Vous', handle: 'vous', bio: 'Ma bio' }));
+    store.set('4chords:v1:seeded', '2');
+
+    const api = new LocalCommunityApi();
+    expect((await api.getPublication('seed_1'))?.composition.title).toBe('Morning Coffee');
+    const mine = await api.getPublication('mine');
+    expect(mine?.composition.title).toBe('Ancienne loop');
+    expect(mine?.composition.moods).toEqual(['Dreamy']);
+    expect((await api.listComments('seed_1')).find((c) => c.id === 'seedc_seed_1_a')?.body).toMatch(/^That move to the IV/);
+    const me = await api.getCurrentUser();
+    expect([me.name, me.handle, me.bio]).toEqual(['You', 'you', 'Ma bio']);
   });
 });

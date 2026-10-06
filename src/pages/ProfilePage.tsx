@@ -44,18 +44,18 @@ export function ProfilePage({ userId }: { userId: string }) {
     if (engine.getState().sourceId !== 'editor') engine.stop();
   }, []);
 
-  if (!user) return <div className="page empty">Profil introuvable.</div>;
+  if (!user) return <div className="page empty">Profile not found.</div>;
 
   const creations = own.filter((p) => !p.composition.remixOf);
   const remixes = own.filter((p) => p.composition.remixOf);
   const totalLikes = own.reduce((s, p) => s + p.likes, 0);
   const tabs: { id: Tab; label: string; count: number }[] = [
-    { id: 'creations', label: 'Créations', count: creations.length },
+    { id: 'creations', label: 'Creations', count: creations.length },
     { id: 'remixes', label: 'Remixes', count: remixes.length },
     ...(isMe
       ? [
-          { id: 'likes' as Tab, label: 'Favoris', count: likedPubs.length },
-          { id: 'drafts' as Tab, label: 'Brouillons', count: drafts.length },
+          { id: 'likes' as Tab, label: 'Liked', count: likedPubs.length },
+          { id: 'drafts' as Tab, label: 'Drafts', count: drafts.length },
         ]
       : []),
   ];
@@ -71,7 +71,7 @@ export function ProfilePage({ userId }: { userId: string }) {
               className="profile-form"
               onSubmit={async (e) => {
                 e.preventDefault();
-                await updateMe({ name: form.name.trim() || 'Vous', bio: form.bio });
+                await updateMe({ name: form.name.trim() || 'You', bio: form.bio });
                 setEditing(false);
               }}
             >
@@ -79,10 +79,10 @@ export function ProfilePage({ userId }: { userId: string }) {
               <input className="input" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} maxLength={120} placeholder="Bio" />
               <div className="chips">
                 <button className="btn primary sm" type="submit">
-                  Enregistrer
+                  Save
                 </button>
                 <button className="btn ghost sm" type="button" onClick={() => setEditing(false)}>
-                  Annuler
+                  Cancel
                 </button>
               </div>
             </form>
@@ -98,7 +98,7 @@ export function ProfilePage({ userId }: { userId: string }) {
                       setEditing(true);
                     }}
                   >
-                    <I.Pencil size={13} /> Modifier
+                    <I.Pencil size={13} /> Edit
                   </button>
                 )}
               </h1>
@@ -108,19 +108,19 @@ export function ProfilePage({ userId }: { userId: string }) {
           )}
           <div className="stats">
             <span>
-              <b>{creations.length}</b> créations
+              <b>{creations.length}</b> creations
             </span>
             <span>
               <b>{remixes.length}</b> remixes
             </span>
             <span>
-              <b>{totalLikes}</b> j’aime reçus
+              <b>{totalLikes}</b> likes received
             </span>
           </div>
         </div>
         {isMe && (
           <button className="btn primary" onClick={() => navigate('/create')}>
-            <I.Plus size={15} /> Créer
+            <I.Plus size={15} /> Create
           </button>
         )}
       </div>
@@ -135,7 +135,7 @@ export function ProfilePage({ userId }: { userId: string }) {
 
       {tab === 'drafts' ? (
         drafts.length === 0 ? (
-          <div className="empty">Aucun brouillon. Utilisez « Enregistrer » dans l’éditeur pour en garder un.</div>
+          <div className="empty">No drafts yet. Use “Save” in the editor to keep one.</div>
         ) : (
           <div className="grid">
             {drafts.map((d) => (
@@ -150,9 +150,9 @@ export function ProfilePage({ userId }: { userId: string }) {
                   <MiniPreview comp={d} />
                 </div>
                 <div className="card-body">
-                  <div className="card-title">{d.title || 'Sans titre'}</div>
+                  <div className="card-title">{d.title || 'Untitled'}</div>
                   <div className="muted small">
-                    {d.bpm} BPM · modifié {timeAgo(d.updatedAt)}
+                    {d.bpm} BPM · edited {timeAgo(d.updatedAt)}
                   </div>
                 </div>
                 <div className="card-actions">
@@ -163,18 +163,18 @@ export function ProfilePage({ userId }: { userId: string }) {
                       navigate('/create');
                     }}
                   >
-                    <I.Pencil size={14} /> Ouvrir
+                    <I.Pencil size={14} /> Open
                   </button>
                   <button
                     className="act"
                     onClick={async () => {
-                      if (!confirm('Supprimer ce brouillon ?')) return;
+                      if (!confirm('Delete this draft?')) return;
                       await api.deleteDraft(d.id);
                       bump();
-                      toast('Brouillon supprimé');
+                      toast('Draft deleted');
                     }}
                   >
-                    <I.Trash size={14} /> Supprimer
+                    <I.Trash size={14} /> Delete
                   </button>
                 </div>
               </article>
@@ -183,7 +183,7 @@ export function ProfilePage({ userId }: { userId: string }) {
         )
       ) : list.length === 0 ? (
         <div className="empty">
-          {tab === 'likes' ? 'Aucun favori pour le moment. Aimez des boucles dans Explore.' : isMe ? 'Rien de publié ici pour le moment.' : 'Rien à afficher.'}
+          {tab === 'likes' ? 'No liked loops yet. Like some in Explore.' : isMe ? 'Nothing published here yet.' : 'Nothing to show.'}
         </div>
       ) : (
         <div className="grid">

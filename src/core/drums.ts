@@ -22,8 +22,8 @@ export const DRUM_LANES: DrumLane[] = [
   { id: 'open', label: 'Open hat', pitch: 46 },
   { id: 'hat', label: 'Closed hat', pitch: 42 },
   { id: 'perc', label: 'Shaker', pitch: 70 },
-  { id: 'tomHi', label: 'Tom haut', pitch: 50 },
-  { id: 'tomLo', label: 'Tom bas', pitch: 45 },
+  { id: 'tomHi', label: 'High tom', pitch: 50 },
+  { id: 'tomLo', label: 'Low tom', pitch: 45 },
   { id: 'clap', label: 'Clap', pitch: 39 },
   { id: 'snare', label: 'Snare', pitch: 38 },
   { id: 'kick', label: 'Kick', pitch: 36 },
@@ -88,7 +88,7 @@ export function swingNote(start: number, duration: number, swing: number | undef
 }
 
 /** Affichage façon boîte à rythmes : 0 → 50 %, 1 → 75 %. */
-export const swingLabel = (swing: number) => `${Math.round(50 + clamp(swing, 0, 1) * 25)} %`;
+export const swingLabel = (swing: number) => `${Math.round(50 + clamp(swing, 0, 1) * 25)}%`;
 
 /* ---------------------------------------------------------------------------
  * Patterns
@@ -120,7 +120,7 @@ const VEL: Record<string, number> = { X: 1, x: 0.8, o: 0.58, g: 0.32 };
 export const DRUM_PATTERNS: DrumPattern[] = [
   {
     id: 'basic',
-    label: 'Basique · Pour débuter',
+    label: 'Basic · Starter',
     genre: 'Pop',
     kit: 'kit-dusty',
     swing: 0,
@@ -141,7 +141,7 @@ export const DRUM_PATTERNS: DrumPattern[] = [
   },
   {
     id: 'lofi',
-    label: 'Lo-fi · Paresseux',
+    label: 'Lo-fi · Lazy',
     genre: 'Lo-fi',
     kit: 'kit-dusty',
     swing: 0.6,
@@ -150,7 +150,7 @@ export const DRUM_PATTERNS: DrumPattern[] = [
   },
   {
     id: 'boombap',
-    label: 'Boom bap · Classique',
+    label: 'Boom bap · Classic',
     genre: 'Hip-hop',
     kit: 'kit-dusty',
     swing: 0.45,
@@ -162,7 +162,7 @@ export const DRUM_PATTERNS: DrumPattern[] = [
   },
   {
     id: 'trap',
-    label: 'Trap · Hi-hats roulés',
+    label: 'Trap · Hi-hat rolls',
     genre: 'Trap',
     kit: 'kit-808',
     swing: 0,
@@ -174,7 +174,7 @@ export const DRUM_PATTERNS: DrumPattern[] = [
   },
   {
     id: 'trap-triplets',
-    label: 'Trap · Triolets',
+    label: 'Trap · Triplets',
     genre: 'Trap',
     kit: 'kit-808',
     swing: 0,
@@ -240,7 +240,7 @@ export const DRUM_PATTERNS: DrumPattern[] = [
   },
   {
     id: 'cinematic',
-    label: 'Cinématique · Toms',
+    label: 'Cinematic · Toms',
     genre: 'Cinematic',
     kit: 'kit-house',
     swing: 0,

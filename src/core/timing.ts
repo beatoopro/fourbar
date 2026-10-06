@@ -12,16 +12,16 @@ export interface SnapOption {
 }
 
 export const SNAP_OPTIONS: SnapOption[] = [
-  { id: '1/1', label: '1 mesure', ticks: BAR },
+  { id: '1/1', label: '1 bar', ticks: BAR },
   { id: '1/2', label: '1/2', ticks: PPQ * 2 },
   { id: '1/4', label: '1/4', ticks: PPQ },
   { id: '1/8', label: '1/8', ticks: PPQ / 2 },
   { id: '1/16', label: '1/16', ticks: PPQ / 4 },
   { id: '1/32', label: '1/32', ticks: PPQ / 8 },
-  { id: '1/4T', label: '1/4 triolet', ticks: (PPQ * 2) / 3 },
-  { id: '1/8T', label: '1/8 triolet', ticks: PPQ / 3 },
-  { id: '1/16T', label: '1/16 triolet', ticks: PPQ / 6 },
-  { id: 'off', label: 'Libre', ticks: 1 },
+  { id: '1/4T', label: '1/4 triplet', ticks: (PPQ * 2) / 3 },
+  { id: '1/8T', label: '1/8 triplet', ticks: PPQ / 3 },
+  { id: '1/16T', label: '1/16 triplet', ticks: PPQ / 6 },
+  { id: 'off', label: 'Off', ticks: 1 },
 ];
 
 export function snapTicks(id: string): number {

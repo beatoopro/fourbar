@@ -1,12 +1,12 @@
 export const GENRES = ['Jazz', 'Lo-fi', 'Hip-hop', 'Neo-soul', 'R&B', 'Pop', 'House', 'Cinematic', 'Trap'];
 
-export const MOODS = ['Chill', 'Mélancolique', 'Joyeux', 'Sombre', 'Rêveur', 'Énergique', 'Romantique', 'Épique'];
+export const MOODS = ['Chill', 'Melancholic', 'Happy', 'Dark', 'Dreamy', 'Energetic', 'Romantic', 'Epic'];
 
 export const SORTS = [
-  { id: 'trending', label: 'Tendances' },
-  { id: 'popular', label: 'Populaires' },
-  { id: 'recent', label: 'Récentes' },
-  { id: 'remixed', label: 'Plus remixées' },
+  { id: 'trending', label: 'Trending' },
+  { id: 'popular', label: 'Popular' },
+  { id: 'recent', label: 'Recent' },
+  { id: 'remixed', label: 'Most remixed' },
 ] as const;
 
 /** BPM suggéré par genre, pour remplir automatiquement la publication. */

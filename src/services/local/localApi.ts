@@ -50,12 +50,15 @@ function write(key: string, value: unknown) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch (e) {
-    console.warn('Stockage local indisponible ou plein', e);
+    console.warn('Local storage unavailable or full', e);
   }
 }
 
-/** 2 : les loops de démonstration reçoivent une piste de batterie. */
-const SEED_VERSION = 2;
+/** 2 : les loops de démonstration reçoivent une piste de batterie. 3 : contenu de démo en anglais. */
+const SEED_VERSION = 3;
+
+/** Profil par défaut d'avant le passage en anglais, remplacé tant que l'utilisateur ne l'a pas modifié. */
+const LEGACY_ME: Partial<User> = { name: 'Vous', handle: 'vous', bio: 'Mes boucles sur 4Chords.' };
 
 export class LocalCommunityApi implements CommunityApi {
   constructor() {
@@ -83,6 +86,9 @@ export class LocalCommunityApi implements CommunityApi {
       return f ? { ...p, composition: f.composition } : p;
     });
     write(KEYS.pubs, [...pubs, ...fresh.values()]);
+    // Textes des commentaires de démo remis à jour (likes, réponses et suppressions conservés).
+    const bodies = new Map(buildSeedComments(this.pubs()).map((c) => [c.id, c.body]));
+    write(KEYS.comments, this.comments().map((c) => (bodies.has(c.id) ? { ...c, body: bodies.get(c.id)! } : c)));
     write(KEYS.seeded, SEED_VERSION);
   }
 
@@ -115,7 +121,9 @@ export class LocalCommunityApi implements CommunityApi {
   }
 
   async getCurrentUser(): Promise<User> {
-    return { ...DEFAULT_ME, ...read<Partial<User>>(KEYS.me, {}) };
+    const stored = read<Partial<User>>(KEYS.me, {});
+    for (const k of ['name', 'handle', 'bio'] as const) if (stored[k] === LEGACY_ME[k]) delete stored[k];
+    return { ...DEFAULT_ME, ...stored };
   }
 
   async updateCurrentUser(patch: Partial<Pick<User, 'name' | 'bio'>>): Promise<User> {
@@ -243,14 +251,14 @@ export class LocalCommunityApi implements CommunityApi {
 
   async addComment(publicationId: string, input: NewComment): Promise<LoopComment> {
     const body = cleanBody(input.body ?? '');
-    if (!body) throw new Error('Le commentaire est vide.');
-    if (body.length > COMMENT_MAX_LENGTH) throw new Error(`Le commentaire dépasse ${COMMENT_MAX_LENGTH} caractères.`);
-    if (!this.pubs().some((p) => p.id === publicationId)) throw new Error('Loop introuvable.');
+    if (!body) throw new Error('The comment is empty.');
+    if (body.length > COMMENT_MAX_LENGTH) throw new Error(`The comment is longer than ${COMMENT_MAX_LENGTH} characters.`);
+    if (!this.pubs().some((p) => p.id === publicationId)) throw new Error('Loop not found.');
     const comments = this.comments();
     let parentId: string | null = null;
     if (input.parentId) {
       const parent = comments.find((c) => c.id === input.parentId && c.publicationId === publicationId);
-      if (!parent) throw new Error('Le commentaire auquel vous répondez n’existe plus.');
+      if (!parent) throw new Error('The comment you’re replying to no longer exists.');
       // Un seul niveau : répondre à une réponse ajoute au même fil.
       parentId = parent.parentId ?? parent.id;
     }
@@ -279,7 +287,7 @@ export class LocalCommunityApi implements CommunityApi {
     const c = comments.find((x) => x.id === commentId);
     if (!c) return;
     const pub = this.pubs().find((p) => p.id === c.publicationId);
-    if (c.authorId !== ME_ID && pub?.authorId !== ME_ID) throw new Error('Vous ne pouvez pas supprimer ce commentaire.');
+    if (c.authorId !== ME_ID && pub?.authorId !== ME_ID) throw new Error('You can’t delete this comment.');
     const hasReplies = comments.some((x) => x.parentId === c.id && !x.deleted);
     if (hasReplies) {
       // On garde la place du commentaire pour que les réponses restent lisibles.

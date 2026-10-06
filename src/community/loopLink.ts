@@ -5,7 +5,7 @@ import { toast } from '../ui/common';
 
 /** « Mesure 3 · temps 2 » à partir d'une position en ticks. */
 export function anchorLabel(tick: number): string {
-  return `Mesure ${Math.floor(tick / BAR) + 1} · temps ${Math.floor((tick % BAR) / PPQ) + 1}`;
+  return `Bar ${Math.floor(tick / BAR) + 1} · beat ${Math.floor((tick % BAR) / PPQ) + 1}`;
 }
 
 /** Position arrondie au temps le plus proche (en restant dans la boucle). */
@@ -27,10 +27,10 @@ export async function shareUrl(pub: Publication, author: User | undefined): Prom
   if (pub.id.startsWith('seed_')) return base;
   const d = await encodeSharedLoop({
     composition: pub.composition,
-    // « Vous » (profil jamais renommé) n'a pas de sens chez le destinataire.
+    // « You » (profil jamais renommé) n'a pas de sens chez le destinataire.
     author: {
-      name: author && author.name !== 'Vous' ? author.name : 'Anonyme',
-      handle: author && author.handle !== 'vous' ? author.handle : 'anonyme',
+      name: author && author.name !== 'You' ? author.name : 'Anonymous',
+      handle: author && author.handle !== 'you' ? author.handle : 'anonymous',
       color: author?.color ?? '#8b5cf6',
     },
     publishedAt: pub.publishedAt,
@@ -43,7 +43,7 @@ export async function shareLink(url: string, title: string) {
   const touch = window.matchMedia?.('(pointer: coarse)').matches;
   if (touch && navigator.share) {
     try {
-      await navigator.share({ title: `${title} · 4Chords`, url });
+      await navigator.share({ title: `${title} · Fourbar`, url });
       return;
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
@@ -51,8 +51,8 @@ export async function shareLink(url: string, title: string) {
   }
   try {
     await navigator.clipboard.writeText(url);
-    toast('Lien copié');
+    toast('Link copied');
   } catch {
-    window.prompt('Copiez ce lien :', url);
+    window.prompt('Copy this link:', url);
   }
 }

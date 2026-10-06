@@ -125,14 +125,14 @@ export function CreatePage() {
   /* ---------- Actions projet ---------- */
   const save = async () => {
     const c = useEditor.getState().comp;
-    await api.saveDraft({ ...c, title: c.title || 'Sans titre' });
+    await api.saveDraft({ ...c, title: c.title || 'Untitled' });
     useEditor.getState().markSaved();
     bump();
-    toast('Projet enregistré dans votre profil');
+    toast('Project saved to your profile');
   };
 
   const newProject = () => {
-    if (noteCount(useEditor.getState().comp) > 0 && useEditor.getState().dirty && !confirm('Commencer un nouveau projet ? Les modifications non enregistrées du brouillon seront perdues.')) return;
+    if (noteCount(useEditor.getState().comp) > 0 && useEditor.getState().dirty && !confirm('Start a new project? Unsaved changes to the draft will be lost.')) return;
     engine.stop();
     useEditor.getState().load(createComposition(ME_ID, { bpm: comp.bpm, key: comp.key }));
   };
@@ -145,7 +145,7 @@ export function CreatePage() {
       downloadBlob(blob, midiFileName(comp).replace(/\.mid$/, '.wav'), 'audio/wav');
     } catch (e) {
       console.error(e);
-      toast('Le rendu WAV a échoué');
+      toast('WAV render failed');
     } finally {
       setRendering(false);
     }
@@ -156,9 +156,9 @@ export function CreatePage() {
       const c = midiToComposition(await file.arrayBuffer(), ME_ID);
       if (!c.title || c.title === 'Import MIDI') c.title = file.name.replace(/\.midi?$/i, '');
       useEditor.getState().load(c);
-      toast('MIDI importé (4 premières mesures, batterie sur le canal 10)');
+      toast('MIDI imported (first 4 bars, drums on channel 10)');
     } catch {
-      toast('Fichier MIDI illisible');
+      toast('Unreadable MIDI file');
     }
   };
 
@@ -168,14 +168,14 @@ export function CreatePage() {
         <input
           className="title-input"
           value={comp.title}
-          placeholder="Sans titre"
+          placeholder="Untitled"
           onChange={(e) => useEditor.getState().updateComp({ title: e.target.value })}
           onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
         />
         {comp.remixOf && <span className="tag accent">Remix</span>}
 
         <div className="transport">
-          <button className={`btn play ${playing ? 'on' : ''}`} onClick={togglePlay} title="Lecture / arrêt (Espace)">
+          <button className={`btn play ${playing ? 'on' : ''}`} onClick={togglePlay} title="Play / stop (Space)">
             {playing ? <I.Stop size={14} /> : <I.Play size={14} />}
           </button>
           <label className="bpm" title="Tempo (BPM)">
@@ -188,7 +188,7 @@ export function CreatePage() {
             />
             <span>BPM</span>
           </label>
-          <label className="swing" title="Swing des doubles-croches, sur toutes les pistes (50 % = droit)">
+          <label className="swing" title="16th-note swing, on all tracks (50% = straight)">
             <span>Swing</span>
             <input
               className="range"
@@ -201,7 +201,7 @@ export function CreatePage() {
             />
             <b>{swingLabel(comp.swing ?? 0)}</b>
           </label>
-          <div className="key-select" title="Tonalité (sert à la gamme surlignée et aux accords automatiques)">
+          <div className="key-select" title="Key (used for scale highlighting and auto chords)">
             <select className="select sm" value={comp.key.root} onChange={(e) => useEditor.getState().updateComp({ key: { ...comp.key, root: Number(e.target.value) } })}>
               {NOTE_NAMES.map((n, i) => (
                 <option key={n} value={i}>
@@ -220,39 +220,39 @@ export function CreatePage() {
         </div>
 
         <div className="head-actions">
-          <button className="btn ghost sm icon" disabled={!canUndo} onClick={() => useEditor.getState().undo()} title="Annuler (Ctrl+Z)">
+          <button className="btn ghost sm icon" disabled={!canUndo} onClick={() => useEditor.getState().undo()} title="Undo (Ctrl+Z)">
             <I.Undo size={15} />
           </button>
-          <button className="btn ghost sm icon" disabled={!canRedo} onClick={() => useEditor.getState().redo()} title="Rétablir (Ctrl+Maj+Z)">
+          <button className="btn ghost sm icon" disabled={!canRedo} onClick={() => useEditor.getState().redo()} title="Redo (Ctrl+Shift+Z)">
             <I.Redo size={15} />
           </button>
           <span className="divider" />
-          <button className="btn ghost sm" onClick={() => setHelp(true)} title="Raccourcis clavier (?)">
+          <button className="btn ghost sm" onClick={() => setHelp(true)} title="Keyboard shortcuts (?)">
             <I.Keyboard size={15} />
           </button>
-          <button className="btn ghost sm" onClick={newProject} title="Nouveau projet">
-            <I.Plus size={15} /> <span className="hide-sm">Nouveau</span>
+          <button className="btn ghost sm" onClick={newProject} title="New project">
+            <I.Plus size={15} /> <span className="hide-sm">New</span>
           </button>
-          <button className="btn ghost sm" onClick={() => void save()} title="Enregistrer dans mon profil (Ctrl+S)">
-            <I.Save size={15} /> <span className="hide-sm">{dirty ? 'Enregistrer' : 'Enregistré'}</span>
+          <button className="btn ghost sm" onClick={() => void save()} title="Save to my profile (Ctrl+S)">
+            <I.Save size={15} /> <span className="hide-sm">{dirty ? 'Save' : 'Saved'}</span>
           </button>
           <div className="menu-wrap">
             <button className="btn sm" onClick={() => setExportOpen((o) => !o)} disabled={rendering}>
-              <I.Download size={15} /> {rendering ? 'Rendu…' : 'Exporter'}
+              <I.Download size={15} /> {rendering ? 'Rendering…' : 'Export'}
             </button>
             {exportOpen && (
               <div className="menu" onMouseLeave={() => setExportOpen(false)}>
                 <button onClick={() => { setExportOpen(false); downloadMidi(useEditor.getState().comp); }}>
                   <b>MIDI</b>
-                  <span>4 pistes, batterie sur le canal 10</span>
+                  <span>4 tracks, drums on channel 10</span>
                 </button>
                 <button onClick={() => void exportWav()}>
                   <b>WAV</b>
-                  <span>Boucle audio de 4 mesures</span>
+                  <span>4-bar audio loop</span>
                 </button>
                 <button onClick={() => { setExportOpen(false); fileRef.current?.click(); }}>
-                  <b>Importer un MIDI…</b>
-                  <span>Remplace le brouillon</span>
+                  <b>Import MIDI…</b>
+                  <span>Replaces the draft</span>
                 </button>
               </div>
             )}
@@ -269,7 +269,7 @@ export function CreatePage() {
             />
           </div>
           <button className="btn primary sm" onClick={() => setPublishing(true)} disabled={noteCount(comp) === 0}>
-            <I.Upload size={15} /> Publier
+            <I.Upload size={15} /> Publish
           </button>
         </div>
       </div>
@@ -291,7 +291,7 @@ export function CreatePage() {
             useEditor.getState().updateComp({ title: p.composition.title, genres: p.composition.genres, moods: p.composition.moods });
             useEditor.getState().markSaved();
             bump();
-            toast('Publiée ! Votre boucle est visible dans Explore.');
+            toast('Published! Your loop is now visible in Explore.');
             navigate(loopPath(p.id));
           }}
         />

@@ -86,7 +86,7 @@ export function MiniPreview({ comp, playingId }: { comp: Composition; playingId?
 /** Ouvre une composition dans l'éditeur sous forme de remix. */
 export function openRemix(pub: Publication) {
   const ed = useEditor.getState();
-  if (ed.dirty && TRACK_IDS.some((id) => ed.comp.tracks[id].notes.length) && !confirm('Ouvrir ce remix dans l’éditeur ? Le brouillon en cours non enregistré sera remplacé.')) return;
+  if (ed.dirty && TRACK_IDS.some((id) => ed.comp.tracks[id].notes.length) && !confirm('Open this remix in the editor? Your unsaved draft will be replaced.')) return;
   engine.stop();
   // Remixer sa propre création : on l'édite directement (mise à jour de la publication).
   ed.load(pub.authorId === ME_ID ? pub.composition : remixOf(pub.composition, ME_ID));
@@ -118,7 +118,7 @@ export function PublicationCard({ pub, highlight }: { pub: Publication; highligh
     <article className={`card ${playing ? 'playing' : ''} ${highlight ? 'highlight' : ''}`}>
       <div className="card-visual" onClick={() => void play()}>
         <MiniPreview comp={c} playingId={playing ? pub.id : undefined} />
-        <button className="card-play" aria-label={playing ? 'Arrêter' : 'Écouter'}>
+        <button className="card-play" aria-label={playing ? 'Stop' : 'Play'}>
           {playing ? <I.Stop size={16} /> : <I.Play size={16} />}
         </button>
       </div>
@@ -128,12 +128,12 @@ export function PublicationCard({ pub, highlight }: { pub: Publication; highligh
         </button>
         <button className="card-author" onClick={() => navigate(`/profile/${pub.authorId}`)}>
           <Avatar user={author} size={18} />
-          <span>{author?.name ?? 'Inconnu'}</span>
+          <span>{author?.name ?? 'Unknown'}</span>
           <span className="muted">· {timeAgo(pub.publishedAt)}</span>
         </button>
         {original && (
           <button className="card-remix-of" onClick={() => navigate(loopPath(original.id))}>
-            <I.Remix size={12} /> Remix de « {original.composition.title} »
+            <I.Remix size={12} /> Remix of “{original.composition.title}”
           </button>
         )}
         <div className="card-tags">
@@ -155,25 +155,25 @@ export function PublicationCard({ pub, highlight }: { pub: Publication; highligh
         <button
           className={`act ${liked ? 'liked' : ''}`}
           onClick={async () => setLikes(await toggleLike(pub))}
-          title={liked ? 'Retirer des favoris' : 'J’aime'}
+          title={liked ? 'Unlike' : 'Like'}
         >
           <I.Heart size={15} filled={liked} /> {likes}
         </button>
-        <button className="act" onClick={() => navigate(loopPath(pub.id, 'comments'))} title="Commentaires">
+        <button className="act" onClick={() => navigate(loopPath(pub.id, 'comments'))} title="Comments">
           <I.Comment size={15} /> {pub.commentCount}
         </button>
         <button
           className="act"
           onClick={() => {
             downloadMidi(c);
-            toast('MIDI téléchargé');
+            toast('MIDI downloaded');
           }}
-          title="Télécharger le MIDI"
+          title="Download MIDI"
         >
           <I.Download size={15} /> MIDI
         </button>
-        <button className="act remix" onClick={() => openRemix(pub)} title="Ouvrir dans l’éditeur">
-          <I.Remix size={15} /> {pub.authorId === ME_ID ? 'Éditer' : 'Remix'}
+        <button className="act remix" onClick={() => openRemix(pub)} title="Open in the editor">
+          <I.Remix size={15} /> {pub.authorId === ME_ID ? 'Edit' : 'Remix'}
         </button>
       </div>
     </article>

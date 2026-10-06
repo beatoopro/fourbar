@@ -6,9 +6,9 @@ import { useEditor } from './store';
 import * as I from '../ui/Icons';
 
 const CHORD_LENGTHS = [
-  { label: '1 mesure', ticks: BAR },
-  { label: '2 temps', ticks: PPQ * 2 },
-  { label: '1 temps', ticks: PPQ },
+  { label: '1 bar', ticks: BAR },
+  { label: '2 beats', ticks: PPQ * 2 },
+  { label: '1 beat', ticks: PPQ },
   { label: '1/8', ticks: PPQ / 2 },
 ];
 
@@ -23,51 +23,51 @@ export function Toolbar() {
 
   return (
     <div className="toolbar">
-      <div className="tool-group" role="group" aria-label="Outils">
-        <button className={`btn icon ${s.tool === 'draw' && !s.chordMode ? 'on' : ''}`} title="Crayon (D)" onClick={() => { s.set('tool', 'draw'); s.set('chordMode', false); }}>
+      <div className="tool-group" role="group" aria-label="Tools">
+        <button className={`btn icon ${s.tool === 'draw' && !s.chordMode ? 'on' : ''}`} title="Pencil (D)" onClick={() => { s.set('tool', 'draw'); s.set('chordMode', false); }}>
           <I.Pencil />
         </button>
-        <button className={`btn icon ${s.chordMode ? 'on' : ''}`} title="Accords (C)" onClick={() => { s.set('chordMode', !s.chordMode); s.set('tool', 'draw'); }}>
+        <button className={`btn icon ${s.chordMode ? 'on' : ''}`} title="Chords (C)" onClick={() => { s.set('chordMode', !s.chordMode); s.set('tool', 'draw'); }}>
           <I.Chord />
         </button>
-        <button className={`btn icon ${s.tool === 'select' ? 'on' : ''}`} title="Sélection (S) — ou Ctrl + glisser" onClick={() => { s.set('tool', 'select'); s.set('chordMode', false); }}>
+        <button className={`btn icon ${s.tool === 'select' ? 'on' : ''}`} title="Select (S), or Ctrl + drag" onClick={() => { s.set('tool', 'select'); s.set('chordMode', false); }}>
           <I.Cursor />
         </button>
       </div>
 
       <div className="tool-group">
-        <span className="tool-label" title="Grille / magnétisme">
+        <span className="tool-label" title="Grid / snap">
           <I.Magnet size={14} />
         </span>
-        <select className="select sm" value={s.snap} onChange={(e) => s.set('snap', e.target.value)} title="Magnétisme (Alt pendant un glisser pour le désactiver)">
+        <select className="select sm" value={s.snap} onChange={(e) => s.set('snap', e.target.value)} title="Snap (hold Alt while dragging to disable)">
           {SNAP_OPTIONS.map((o) => (
             <option key={o.id} value={o.id}>
               {o.label}
             </option>
           ))}
         </select>
-        <button className="btn sm" onClick={s.quantize} title="Quantifier la sélection (ou toute la piste) sur la grille (Q)">
+        <button className="btn sm" onClick={s.quantize} title="Quantize the selection (or the whole track) to the grid (Q)">
           Q
         </button>
       </div>
 
       {s.chordMode && (
         <div className="tool-group chord-tools">
-          <select className="select sm" value={s.chordType} onChange={(e) => s.set('chordType', e.target.value)} title="Type d'accord">
+          <select className="select sm" value={s.chordType} onChange={(e) => s.set('chordType', e.target.value)} title="Chord type">
             {CHORD_TYPES.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.label}
               </option>
             ))}
           </select>
-          <div className="seg" title="Renversement des accords posés : position fondamentale, 1er, 2e, 3e renversement">
+          <div className="seg" title="Inversion of placed chords: root position, 1st, 2nd, 3rd inversion">
             {[0, 1, 2, 3].map((i) => (
               <button key={i} className={s.inversion === i ? 'on' : ''} onClick={() => s.set('inversion', i)}>
-                {i === 0 ? 'F' : i}
+                {i === 0 ? 'R' : i}
               </button>
             ))}
           </div>
-          <select className="select sm" value={s.chordLength} onChange={(e) => s.set('chordLength', Number(e.target.value))} title="Durée des accords">
+          <select className="select sm" value={s.chordLength} onChange={(e) => s.set('chordLength', Number(e.target.value))} title="Chord length">
             {CHORD_LENGTHS.map((l) => (
               <option key={l.ticks} value={l.ticks}>
                 {l.label}
@@ -84,7 +84,7 @@ export function Toolbar() {
           onChange={(e) => {
             if (e.target.value) s.insertProgression(e.target.value, withBass);
           }}
-          title="Remplace la piste Chords par une progression de 4 accords dans la tonalité choisie"
+          title="Replaces the Chords track with a 4-chord progression in the chosen key"
         >
           <option value="">⚡ Progression…</option>
           {PROGRESSIONS.map((p) => (
@@ -93,35 +93,35 @@ export function Toolbar() {
             </option>
           ))}
         </select>
-        <label className="check" title="Générer aussi la basse (fondamentales)">
-          <input type="checkbox" checked={withBass} onChange={(e) => setWithBass(e.target.checked)} /> + basse
+        <label className="check" title="Also generate the bass (root notes)">
+          <input type="checkbox" checked={withBass} onChange={(e) => setWithBass(e.target.checked)} /> + bass
         </label>
       </div>
 
       <div className="tool-group">
-        <span className="tool-label small">Renv.</span>
-        <button className="btn sm icon" disabled={selNotes.length < 2} onClick={() => s.invertSelection(1)} title="Renverser la sélection vers le haut (I)">
+        <span className="tool-label small">Inv.</span>
+        <button className="btn sm icon" disabled={selNotes.length < 2} onClick={() => s.invertSelection(1)} title="Invert the selection upward (I)">
           <I.ArrowUp size={13} />
         </button>
-        <button className="btn sm icon" disabled={selNotes.length < 2} onClick={() => s.invertSelection(-1)} title="Renverser vers le bas (Maj + I)">
+        <button className="btn sm icon" disabled={selNotes.length < 2} onClick={() => s.invertSelection(-1)} title="Invert downward (Shift + I)">
           <I.ArrowDown size={13} />
         </button>
       </div>
 
       <div className="tool-group">
-        <button className={`btn icon ${s.ghosts ? 'on' : ''}`} title="Ghost notes des autres pistes (G)" onClick={() => s.set('ghosts', !s.ghosts)}>
+        <button className={`btn icon ${s.ghosts ? 'on' : ''}`} title="Ghost notes from other tracks (G)" onClick={() => s.set('ghosts', !s.ghosts)}>
           <I.Ghost />
         </button>
-        <button className={`btn icon ${s.scaleHighlight ? 'on' : ''}`} title="Surligner la gamme (H)" onClick={() => s.set('scaleHighlight', !s.scaleHighlight)}>
+        <button className={`btn icon ${s.scaleHighlight ? 'on' : ''}`} title="Highlight the scale (H)" onClick={() => s.set('scaleHighlight', !s.scaleHighlight)}>
           <I.Scale />
         </button>
       </div>
 
       <div className="tool-group">
-        <button className="btn icon" title="Dézoomer (-)" onClick={() => s.set('pxPerBeat', clamp(s.pxPerBeat / 1.25, 24, 480))}>
+        <button className="btn icon" title="Zoom out (-)" onClick={() => s.set('pxPerBeat', clamp(s.pxPerBeat / 1.25, 24, 480))}>
           <I.ZoomOut />
         </button>
-        <button className="btn icon" title="Zoomer (+) — ou Ctrl + molette" onClick={() => s.set('pxPerBeat', clamp(s.pxPerBeat * 1.25, 24, 480))}>
+        <button className="btn icon" title="Zoom in (+), or Ctrl + wheel" onClick={() => s.set('pxPerBeat', clamp(s.pxPerBeat * 1.25, 24, 480))}>
           <I.ZoomIn />
         </button>
       </div>
@@ -130,12 +130,12 @@ export function Toolbar() {
         {selNotes.length > 0 ? (
           <>
             <span>
-              {selNotes.length} note{selNotes.length > 1 ? 's' : ''}
+              {selNotes.length} note{selNotes.length !== 1 ? 's' : ''}
             </span>
             {chord && <span className="tag accent">{chord}</span>}
           </>
         ) : (
-          <span className="muted">{s.chordMode ? 'Cliquez pour poser un accord' : s.tool === 'select' ? 'Glissez pour sélectionner' : 'Cliquez pour ajouter une note'}</span>
+          <span className="muted">{s.chordMode ? 'Click to place a chord' : s.tool === 'select' ? 'Drag to select' : 'Click to add a note'}</span>
         )}
       </div>
     </div>
@@ -151,17 +151,17 @@ function DrumToolbar() {
   return (
     <div className="toolbar">
       <div className="tool-group">
-        <span className="tool-label" title="Résolution de la grille">
+        <span className="tool-label" title="Grid resolution">
           <I.Magnet size={14} />
         </span>
-        <select className="select sm" value={s.snap} onChange={(e) => s.set('snap', e.target.value)} title="Résolution de la grille : 1/16 pour la plupart des styles, triolets ou 1/32 pour les hi-hats trap">
+        <select className="select sm" value={s.snap} onChange={(e) => s.set('snap', e.target.value)} title="Grid resolution: 1/16 for most styles, triplets or 1/32 for trap hi-hats">
           {SNAP_OPTIONS.filter((o) => o.ticks <= PPQ).map((o) => (
             <option key={o.id} value={o.id}>
               {o.label}
             </option>
           ))}
         </select>
-        <button className="btn sm" onClick={s.quantize} title="Quantifier sur la grille (Q)">
+        <button className="btn sm" onClick={s.quantize} title="Quantize to the grid (Q)">
           Q
         </button>
       </div>
@@ -173,7 +173,7 @@ function DrumToolbar() {
           onChange={(e) => {
             if (e.target.value) s.insertDrumPattern(e.target.value, withFill);
           }}
-          title="Remplace la piste Drums par un pattern prêt à l'emploi (règle aussi le kit et le swing)"
+          title="Replaces the Drums track with a ready-made pattern (also sets the kit and swing)"
         >
           <option value="">🥁 Pattern…</option>
           {DRUM_PATTERNS.map((p) => (
@@ -182,40 +182,40 @@ function DrumToolbar() {
             </option>
           ))}
         </select>
-        <label className="check" title="Variation (break) en mesure 4, quand le pattern en propose une">
+        <label className="check" title="Variation (break) in bar 4, when the pattern has one">
           <input type="checkbox" checked={withFill} onChange={(e) => setWithFill(e.target.checked)} /> + break
         </label>
       </div>
 
       <div className="tool-group">
-        <button className="btn sm" disabled={!hits} onClick={s.repeatDrumBar} title="Copier la mesure 1 sur les mesures 2, 3 et 4">
-          Répéter la mesure 1
+        <button className="btn sm" disabled={!hits} onClick={s.repeatDrumBar} title="Copy bar 1 to bars 2, 3 and 4">
+          Repeat bar 1
         </button>
-        <button className="btn sm" disabled={!hits} onClick={s.humanize} title="Varier légèrement la force et le placement des coups (U)">
-          Humaniser
+        <button className="btn sm" disabled={!hits} onClick={s.humanize} title="Slightly vary hit velocity and timing (U)">
+          Humanize
         </button>
       </div>
 
       <div className="tool-group">
-        <button className={`btn icon ${s.ghosts ? 'on' : ''}`} title="Repères de la basse sur la règle (G)" onClick={() => s.set('ghosts', !s.ghosts)}>
+        <button className={`btn icon ${s.ghosts ? 'on' : ''}`} title="Bass markers on the ruler (G)" onClick={() => s.set('ghosts', !s.ghosts)}>
           <I.Ghost />
         </button>
-        <button className={`btn sm ${s.drumCompact ? 'on' : ''}`} title="N'afficher que les lignes utilisées" onClick={() => s.set('drumCompact', !s.drumCompact)}>
-          Lignes utilisées
+        <button className={`btn sm ${s.drumCompact ? 'on' : ''}`} title="Show only used rows" onClick={() => s.set('drumCompact', !s.drumCompact)}>
+          Used rows
         </button>
       </div>
 
       <div className="tool-group">
-        <button className="btn icon" title="Dézoomer (-)" onClick={() => s.set('pxPerBeat', clamp(s.pxPerBeat / 1.25, 24, 480))}>
+        <button className="btn icon" title="Zoom out (-)" onClick={() => s.set('pxPerBeat', clamp(s.pxPerBeat / 1.25, 24, 480))}>
           <I.ZoomOut />
         </button>
-        <button className="btn icon" title="Zoomer (+) — ou Ctrl + molette" onClick={() => s.set('pxPerBeat', clamp(s.pxPerBeat * 1.25, 24, 480))}>
+        <button className="btn icon" title="Zoom in (+), or Ctrl + wheel" onClick={() => s.set('pxPerBeat', clamp(s.pxPerBeat * 1.25, 24, 480))}>
           <I.ZoomIn />
         </button>
       </div>
 
       <div className="tool-status">
-        <span className="muted">Maj + clic : accent · Alt + clic : roulement</span>
+        <span className="muted">Shift + click: accent · Alt + click: roll</span>
       </div>
     </div>
   );

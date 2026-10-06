@@ -13,21 +13,21 @@ import { buildPatternNotes, getDrumPattern, patternForGenre, humanizeNotes } fro
 export const ME_ID = 'me';
 
 export const SEED_USERS: User[] = [
-  { id: 'u_lina', name: 'Lina Moreau', handle: 'linabeats', bio: 'Lo-fi & jazz chords au réveil.', color: '#a78bfa', joinedAt: '2026-03-02' },
-  { id: 'u_kenji', name: 'Kenji Arata', handle: 'kenji.wav', bio: 'House, garage, et tout ce qui fait bouger la tête.', color: '#5eead4', joinedAt: '2026-01-15' },
-  { id: 'u_nora', name: 'Nora Vale', handle: 'noravale', bio: 'Compositrice à l’image. Cordes et nappes.', color: '#f0abfc', joinedAt: '2026-02-20' },
-  { id: 'u_malik', name: 'Malik D.', handle: 'malikprod', bio: 'Trap / drill. 808 d’abord, questions ensuite.', color: '#fbbf24', joinedAt: '2026-04-11' },
-  { id: 'u_sacha', name: 'Sacha Lenoir', handle: 'sachakeys', bio: 'Claviériste neo-soul. Voicings > tout.', color: '#93c5fd', joinedAt: '2025-12-08' },
-  { id: 'u_ama', name: 'Ama Owusu', handle: 'amamusic', bio: 'R&B, pop et mélodies qui restent en tête.', color: '#fda4af', joinedAt: '2026-05-23' },
-  { id: 'u_elio', name: 'Elio Brun', handle: 'elio', bio: 'Étudiant en jazz, je partage mes II-V-I.', color: '#86efac', joinedAt: '2026-06-30' },
-  { id: 'u_jade', name: 'Jade Kim', handle: 'jadeloops', bio: 'Boom bap et samples imaginaires.', color: '#fdba74', joinedAt: '2026-07-14' },
+  { id: 'u_lina', name: 'Lina Moreau', handle: 'linabeats', bio: 'Lo-fi & jazz chords to wake up to.', color: '#a78bfa', joinedAt: '2026-03-02' },
+  { id: 'u_kenji', name: 'Kenji Arata', handle: 'kenji.wav', bio: 'House, garage, anything that makes heads nod.', color: '#5eead4', joinedAt: '2026-01-15' },
+  { id: 'u_nora', name: 'Nora Vale', handle: 'noravale', bio: 'Film composer. Strings and pads.', color: '#f0abfc', joinedAt: '2026-02-20' },
+  { id: 'u_malik', name: 'Malik D.', handle: 'malikprod', bio: 'Trap / drill. 808 first, questions later.', color: '#fbbf24', joinedAt: '2026-04-11' },
+  { id: 'u_sacha', name: 'Sacha Lenoir', handle: 'sachakeys', bio: 'Neo-soul keys player. Voicings > everything.', color: '#93c5fd', joinedAt: '2025-12-08' },
+  { id: 'u_ama', name: 'Ama Owusu', handle: 'amamusic', bio: 'R&B, pop and melodies that stick.', color: '#fda4af', joinedAt: '2026-05-23' },
+  { id: 'u_elio', name: 'Elio Brun', handle: 'elio', bio: 'Jazz student sharing my II-V-Is.', color: '#86efac', joinedAt: '2026-06-30' },
+  { id: 'u_jade', name: 'Jade Kim', handle: 'jadeloops', bio: 'Boom bap and imaginary samples.', color: '#fdba74', joinedAt: '2026-07-14' },
 ];
 
 export const DEFAULT_ME: User = {
   id: ME_ID,
-  name: 'Vous',
-  handle: 'vous',
-  bio: 'Mes boucles sur 4Chords.',
+  name: 'You',
+  handle: 'you',
+  bio: 'My loops on Fourbar.',
   color: '#8b5cf6',
   joinedAt: new Date().toISOString().slice(0, 10),
 };
@@ -68,28 +68,28 @@ interface Spec {
 }
 
 const SPECS: Spec[] = [
-  { title: 'Café du matin', author: 'u_lina', genre: 'Lo-fi', moods: ['Chill', 'Rêveur'], bpm: 78, root: 5, scale: 'major', degrees: [1, 4, 0, 3], chordType: 'diatonic7', chordStyle: 'push', bassStyle: 'root', melody: 1, likes: 214, daysAgo: 2 },
-  { title: 'Late Night Tokyo', author: 'u_kenji', genre: 'House', moods: ['Énergique', 'Rêveur'], bpm: 124, root: 9, scale: 'minor', degrees: [0, 5, 2, 6], chordType: 'diatonic7', chordStyle: 'offbeat', bassStyle: 'octave', melody: 1, likes: 182, daysAgo: 1, chordInstrument: 'organ' },
-  { title: 'Ombres', author: 'u_nora', genre: 'Cinematic', moods: ['Sombre', 'Épique'], bpm: 88, root: 2, scale: 'minor', degrees: [0, 5, 6, 0], chordType: 'diatonic3', chordStyle: 'arp', bassStyle: 'root', melody: 1, likes: 156, daysAgo: 5, chordInstrument: 'pad', melodyInstrument: 'bell' },
-  { title: 'Crown', author: 'u_malik', genre: 'Trap', moods: ['Sombre', 'Énergique'], bpm: 142, root: 1, scale: 'minor', degrees: [0, 3, 5, 4], chordType: 'diatonic3', chordStyle: 'halfbar', bassStyle: '808', melody: 2, likes: 301, daysAgo: 3, chordInstrument: 'pad', melodyInstrument: 'bell' },
-  { title: 'Velours', author: 'u_sacha', genre: 'Neo-soul', moods: ['Romantique', 'Chill'], bpm: 74, root: 3, scale: 'major', degrees: [3, 2, 1, 0], chordType: 'diatonic9', chordStyle: 'push', bassStyle: 'syncop', melody: 1, likes: 266, daysAgo: 4 },
-  { title: 'Golden Hour', author: 'u_ama', genre: 'R&B', moods: ['Romantique', 'Rêveur'], bpm: 68, root: 8, scale: 'major', degrees: [3, 4, 2, 5], chordType: 'diatonic7', chordStyle: 'sustain', bassStyle: 'syncop', melody: 2, likes: 198, daysAgo: 6 },
-  { title: 'Autumn II-V', author: 'u_elio', genre: 'Jazz', moods: ['Mélancolique', 'Chill'], bpm: 118, root: 10, scale: 'major', degrees: [1, 4, 0, 5], chordType: 'diatonic7', chordStyle: 'stabs', bassStyle: 'walking', melody: 2, likes: 143, daysAgo: 8 },
-  { title: 'Dusty Tape', author: 'u_jade', genre: 'Hip-hop', moods: ['Chill', 'Mélancolique'], bpm: 88, root: 4, scale: 'minor', degrees: [0, 3, 5, 4], chordType: 'diatonic7', chordStyle: 'stabs', bassStyle: 'syncop', melody: 1, likes: 175, daysAgo: 2 },
-  { title: 'Summer Radio', author: 'u_ama', genre: 'Pop', moods: ['Joyeux', 'Énergique'], bpm: 112, root: 7, scale: 'major', degrees: [0, 4, 5, 3], chordType: 'diatonic3', chordStyle: 'offbeat', bassStyle: 'octave', melody: 3, likes: 240, daysAgo: 1, melodyInstrument: 'lead' },
-  { title: 'Pluie fine', author: 'u_lina', genre: 'Lo-fi', moods: ['Mélancolique', 'Chill'], bpm: 72, root: 2, scale: 'dorian', degrees: [0, 3, 0, 4], chordType: 'diatonic7', chordStyle: 'sustain', bassStyle: 'root', melody: 1, likes: 121, daysAgo: 12, chordInstrument: 'keys' },
-  { title: 'Warehouse 6AM', author: 'u_kenji', genre: 'House', moods: ['Énergique'], bpm: 126, root: 0, scale: 'minor', degrees: [0, 0, 5, 6], chordType: 'diatonic7', chordStyle: 'offbeat', bassStyle: 'octave', melody: 0, likes: 97, daysAgo: 15, bassInstrument: 'analog' },
-  { title: 'Northern Lights', author: 'u_nora', genre: 'Cinematic', moods: ['Épique', 'Rêveur'], bpm: 80, root: 0, scale: 'major', degrees: [5, 3, 0, 4], chordType: 'diatonic3', chordStyle: 'sustain', bassStyle: 'root', melody: 1, likes: 188, daysAgo: 9, chordInstrument: 'pad', melodyInstrument: 'bell' },
-  { title: 'Midnight Drill', author: 'u_malik', genre: 'Trap', moods: ['Sombre'], bpm: 144, root: 6, scale: 'minor', degrees: [0, 5, 3, 4], chordType: 'diatonic3', chordStyle: 'halfbar', bassStyle: '808', melody: 2, likes: 156, daysAgo: 7, melodyInstrument: 'pluck' },
-  { title: 'Sunday Service', author: 'u_sacha', genre: 'Neo-soul', moods: ['Joyeux', 'Romantique'], bpm: 82, root: 5, scale: 'major', degrees: [3, 4, 2, 5], chordType: 'diatonic9', chordStyle: 'push', bassStyle: 'syncop', melody: 2, likes: 209, daysAgo: 11, chordInstrument: 'organ' },
-  { title: 'Blue Monday Waltz… en 4/4', author: 'u_elio', genre: 'Jazz', moods: ['Chill', 'Joyeux'], bpm: 132, root: 0, scale: 'major', degrees: [0, 5, 1, 4], chordType: 'diatonic7', chordStyle: 'stabs', bassStyle: 'walking', melody: 2, likes: 88, daysAgo: 20 },
-  { title: 'Concrete', author: 'u_jade', genre: 'Hip-hop', moods: ['Sombre', 'Énergique'], bpm: 92, root: 9, scale: 'minor', degrees: [0, 6, 5, 6], chordType: 'diatonic3', chordStyle: 'stabs', bassStyle: 'syncop', melody: 1, likes: 132, daysAgo: 10, bassInstrument: 'round' },
-  { title: 'Slow Dance', author: 'u_ama', genre: 'R&B', moods: ['Romantique', 'Mélancolique'], bpm: 64, root: 1, scale: 'major', degrees: [5, 3, 0, 4], chordType: 'diatonic9', chordStyle: 'sustain', bassStyle: 'syncop', melody: 1, likes: 167, daysAgo: 14 },
-  { title: 'Bright Side', author: 'u_kenji', genre: 'Pop', moods: ['Joyeux'], bpm: 118, root: 2, scale: 'major', degrees: [0, 3, 5, 4], chordType: 'diatonic3', chordStyle: 'offbeat', bassStyle: 'octave', melody: 3, likes: 110, daysAgo: 18, melodyInstrument: 'lead' },
-  { title: 'Lettre à Paris', author: 'u_nora', genre: 'Cinematic', moods: ['Mélancolique', 'Romantique'], bpm: 70, root: 4, scale: 'minor', degrees: [0, 5, 3, 4], chordType: 'diatonic3', chordStyle: 'arp', bassStyle: 'root', melody: 1, likes: 145, daysAgo: 22, chordInstrument: 'keys' },
-  { title: 'Study Session', author: 'u_lina', genre: 'Lo-fi', moods: ['Chill', 'Rêveur'], bpm: 84, root: 7, scale: 'major', degrees: [3, 2, 1, 4], chordType: 'diatonic9', chordStyle: 'push', bassStyle: 'root', melody: 2, likes: 260, daysAgo: 25 },
-  { title: 'Neon Smoke', author: 'u_malik', genre: 'Hip-hop', moods: ['Sombre', 'Chill'], bpm: 86, root: 11, scale: 'minor', degrees: [0, 3, 0, 5], chordType: 'diatonic7', chordStyle: 'halfbar', bassStyle: '808', melody: 1, likes: 76, daysAgo: 28 },
-  { title: 'Ascension', author: 'u_sacha', genre: 'Neo-soul', moods: ['Rêveur', 'Épique'], bpm: 90, root: 10, scale: 'dorian', degrees: [0, 3, 4, 3], chordType: 'diatonic9', chordStyle: 'sustain', bassStyle: 'syncop', melody: 2, likes: 59, daysAgo: 30, chordInstrument: 'pad' },
+  { title: 'Morning Coffee', author: 'u_lina', genre: 'Lo-fi', moods: ['Chill', 'Dreamy'], bpm: 78, root: 5, scale: 'major', degrees: [1, 4, 0, 3], chordType: 'diatonic7', chordStyle: 'push', bassStyle: 'root', melody: 1, likes: 214, daysAgo: 2 },
+  { title: 'Late Night Tokyo', author: 'u_kenji', genre: 'House', moods: ['Energetic', 'Dreamy'], bpm: 124, root: 9, scale: 'minor', degrees: [0, 5, 2, 6], chordType: 'diatonic7', chordStyle: 'offbeat', bassStyle: 'octave', melody: 1, likes: 182, daysAgo: 1, chordInstrument: 'organ' },
+  { title: 'Shadows', author: 'u_nora', genre: 'Cinematic', moods: ['Dark', 'Epic'], bpm: 88, root: 2, scale: 'minor', degrees: [0, 5, 6, 0], chordType: 'diatonic3', chordStyle: 'arp', bassStyle: 'root', melody: 1, likes: 156, daysAgo: 5, chordInstrument: 'pad', melodyInstrument: 'bell' },
+  { title: 'Crown', author: 'u_malik', genre: 'Trap', moods: ['Dark', 'Energetic'], bpm: 142, root: 1, scale: 'minor', degrees: [0, 3, 5, 4], chordType: 'diatonic3', chordStyle: 'halfbar', bassStyle: '808', melody: 2, likes: 301, daysAgo: 3, chordInstrument: 'pad', melodyInstrument: 'bell' },
+  { title: 'Velvet', author: 'u_sacha', genre: 'Neo-soul', moods: ['Romantic', 'Chill'], bpm: 74, root: 3, scale: 'major', degrees: [3, 2, 1, 0], chordType: 'diatonic9', chordStyle: 'push', bassStyle: 'syncop', melody: 1, likes: 266, daysAgo: 4 },
+  { title: 'Golden Hour', author: 'u_ama', genre: 'R&B', moods: ['Romantic', 'Dreamy'], bpm: 68, root: 8, scale: 'major', degrees: [3, 4, 2, 5], chordType: 'diatonic7', chordStyle: 'sustain', bassStyle: 'syncop', melody: 2, likes: 198, daysAgo: 6 },
+  { title: 'Autumn II-V', author: 'u_elio', genre: 'Jazz', moods: ['Melancholic', 'Chill'], bpm: 118, root: 10, scale: 'major', degrees: [1, 4, 0, 5], chordType: 'diatonic7', chordStyle: 'stabs', bassStyle: 'walking', melody: 2, likes: 143, daysAgo: 8 },
+  { title: 'Dusty Tape', author: 'u_jade', genre: 'Hip-hop', moods: ['Chill', 'Melancholic'], bpm: 88, root: 4, scale: 'minor', degrees: [0, 3, 5, 4], chordType: 'diatonic7', chordStyle: 'stabs', bassStyle: 'syncop', melody: 1, likes: 175, daysAgo: 2 },
+  { title: 'Summer Radio', author: 'u_ama', genre: 'Pop', moods: ['Happy', 'Energetic'], bpm: 112, root: 7, scale: 'major', degrees: [0, 4, 5, 3], chordType: 'diatonic3', chordStyle: 'offbeat', bassStyle: 'octave', melody: 3, likes: 240, daysAgo: 1, melodyInstrument: 'lead' },
+  { title: 'Light Rain', author: 'u_lina', genre: 'Lo-fi', moods: ['Melancholic', 'Chill'], bpm: 72, root: 2, scale: 'dorian', degrees: [0, 3, 0, 4], chordType: 'diatonic7', chordStyle: 'sustain', bassStyle: 'root', melody: 1, likes: 121, daysAgo: 12, chordInstrument: 'keys' },
+  { title: 'Warehouse 6AM', author: 'u_kenji', genre: 'House', moods: ['Energetic'], bpm: 126, root: 0, scale: 'minor', degrees: [0, 0, 5, 6], chordType: 'diatonic7', chordStyle: 'offbeat', bassStyle: 'octave', melody: 0, likes: 97, daysAgo: 15, bassInstrument: 'analog' },
+  { title: 'Northern Lights', author: 'u_nora', genre: 'Cinematic', moods: ['Epic', 'Dreamy'], bpm: 80, root: 0, scale: 'major', degrees: [5, 3, 0, 4], chordType: 'diatonic3', chordStyle: 'sustain', bassStyle: 'root', melody: 1, likes: 188, daysAgo: 9, chordInstrument: 'pad', melodyInstrument: 'bell' },
+  { title: 'Midnight Drill', author: 'u_malik', genre: 'Trap', moods: ['Dark'], bpm: 144, root: 6, scale: 'minor', degrees: [0, 5, 3, 4], chordType: 'diatonic3', chordStyle: 'halfbar', bassStyle: '808', melody: 2, likes: 156, daysAgo: 7, melodyInstrument: 'pluck' },
+  { title: 'Sunday Service', author: 'u_sacha', genre: 'Neo-soul', moods: ['Happy', 'Romantic'], bpm: 82, root: 5, scale: 'major', degrees: [3, 4, 2, 5], chordType: 'diatonic9', chordStyle: 'push', bassStyle: 'syncop', melody: 2, likes: 209, daysAgo: 11, chordInstrument: 'organ' },
+  { title: 'Blue Monday Waltz… in 4/4', author: 'u_elio', genre: 'Jazz', moods: ['Chill', 'Happy'], bpm: 132, root: 0, scale: 'major', degrees: [0, 5, 1, 4], chordType: 'diatonic7', chordStyle: 'stabs', bassStyle: 'walking', melody: 2, likes: 88, daysAgo: 20 },
+  { title: 'Concrete', author: 'u_jade', genre: 'Hip-hop', moods: ['Dark', 'Energetic'], bpm: 92, root: 9, scale: 'minor', degrees: [0, 6, 5, 6], chordType: 'diatonic3', chordStyle: 'stabs', bassStyle: 'syncop', melody: 1, likes: 132, daysAgo: 10, bassInstrument: 'round' },
+  { title: 'Slow Dance', author: 'u_ama', genre: 'R&B', moods: ['Romantic', 'Melancholic'], bpm: 64, root: 1, scale: 'major', degrees: [5, 3, 0, 4], chordType: 'diatonic9', chordStyle: 'sustain', bassStyle: 'syncop', melody: 1, likes: 167, daysAgo: 14 },
+  { title: 'Bright Side', author: 'u_kenji', genre: 'Pop', moods: ['Happy'], bpm: 118, root: 2, scale: 'major', degrees: [0, 3, 5, 4], chordType: 'diatonic3', chordStyle: 'offbeat', bassStyle: 'octave', melody: 3, likes: 110, daysAgo: 18, melodyInstrument: 'lead' },
+  { title: 'Letter to Paris', author: 'u_nora', genre: 'Cinematic', moods: ['Melancholic', 'Romantic'], bpm: 70, root: 4, scale: 'minor', degrees: [0, 5, 3, 4], chordType: 'diatonic3', chordStyle: 'arp', bassStyle: 'root', melody: 1, likes: 145, daysAgo: 22, chordInstrument: 'keys' },
+  { title: 'Study Session', author: 'u_lina', genre: 'Lo-fi', moods: ['Chill', 'Dreamy'], bpm: 84, root: 7, scale: 'major', degrees: [3, 2, 1, 4], chordType: 'diatonic9', chordStyle: 'push', bassStyle: 'root', melody: 2, likes: 260, daysAgo: 25 },
+  { title: 'Neon Smoke', author: 'u_malik', genre: 'Hip-hop', moods: ['Dark', 'Chill'], bpm: 86, root: 11, scale: 'minor', degrees: [0, 3, 0, 5], chordType: 'diatonic7', chordStyle: 'halfbar', bassStyle: '808', melody: 1, likes: 76, daysAgo: 28 },
+  { title: 'Ascension', author: 'u_sacha', genre: 'Neo-soul', moods: ['Dreamy', 'Epic'], bpm: 90, root: 10, scale: 'dorian', degrees: [0, 3, 4, 3], chordType: 'diatonic9', chordStyle: 'sustain', bassStyle: 'syncop', melody: 2, likes: 59, daysAgo: 30, chordInstrument: 'pad' },
 ];
 
 const CHORD_RHYTHMS: Record<Exclude<ChordStyle, 'arp'>, [number, number][]> = {
@@ -259,12 +259,12 @@ export function buildSeedPublications(): Publication[] {
     c.updatedAt = date;
     pubs.push({ id: c.id, composition: c, authorId: author, likes, plays: likes * 5, publishedAt: date, commentCount: 0 });
   };
-  remix(0, 'u_jade', 'Café du matin (boom bap flip)', (c) => {
+  remix(0, 'u_jade', 'Morning Coffee (boom bap flip)', (c) => {
     c.bpm = 90;
     c.genres = ['Hip-hop'];
     c.tracks.bass.instrument = 'round';
   }, 64, 1);
-  remix(4, 'u_ama', 'Velours (slow jam)', (c) => {
+  remix(4, 'u_ama', 'Velvet (slow jam)', (c) => {
     c.bpm = 66;
     c.genres = ['R&B'];
     c.tracks.chords.instrument = 'pad';
@@ -275,7 +275,7 @@ export function buildSeedPublications(): Publication[] {
     c.tracks.chords.instrument = 'organ';
     c.tracks.bass.instrument = 'analog';
   }, 52, 3);
-  remix(0, 'u_elio', 'Café du matin, version trio', (c) => {
+  remix(0, 'u_elio', 'Morning Coffee, trio version', (c) => {
     c.genres = ['Jazz'];
     c.bpm = 112;
   }, 23, 4);
