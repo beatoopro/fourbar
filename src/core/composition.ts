@@ -16,7 +16,7 @@ export const TRACK_LABELS: Record<TrackId, string> = {
   drums: 'Drums',
 };
 
-const DEFAULT_INSTRUMENT: Record<TrackId, string> = { chords: 'keys', melody: 'pluck', bass: 'sub', drums: 'kit-dusty' };
+const DEFAULT_INSTRUMENT: Record<TrackId, string> = { chords: 'keys', melody: 'pluck', bass: 'round', drums: 'kit-dusty' };
 const DEFAULT_VOLUME: Record<TrackId, number> = { chords: 0.7, melody: 0.75, bass: 0.8, drums: 0.8 };
 
 export function createTrack(id: TrackId, notes: Note[] = []): Track {
