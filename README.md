@@ -56,8 +56,10 @@ Le son démarre au premier clic (règle des navigateurs).
 - Trois pistes avec notes, instrument, volume, vélocité par défaut, muet, solo.
 - Lecture synchronisée des 3 pistes en boucle, tête de lecture, BPM réglable,
   modifications entendues en direct pendant la lecture.
-- 9 instruments synthétisés (Soft Keys, Warm Pad, Velvet Organ, Glass Pluck,
-  Bell, Soft Lead, Sub Bass, Analog Bass, Round Bass), réverbération, limiteur.
+- 11 instruments : 4 échantillonnés (Grand Piano, Electric Piano, Finger Bass,
+  Upright Bass, fichiers et licences CC BY dans `public/samples/CREDITS.md`) et
+  7 synthétisés (Warm Pad, Velvet Organ, Glass Pluck, Bell, Soft Lead, Sub Bass,
+  Analog Bass), réverbération, limiteur.
 - Export MIDI complet (4 pistes nommées, positions, durées et vélocités exactes,
   tempo, signature, tonalité, programme General MIDI ; batterie sur le canal 10).
 - Export WAV d'une boucle de 4 mesures qui se répète sans coupure.
