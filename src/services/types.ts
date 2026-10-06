@@ -61,7 +61,7 @@ export const COMMENT_MAX_LENGTH = 500;
 
 /** Texte du commentaire laissé sur l'original quand on publie un remix. */
 export function remixNoteBody(title: string): string {
-  return `🔁 J’ai remixé cette loop : « ${title} »`;
+  return `🔁 I remixed this loop: “${title}”`;
 }
 
 export type FeedSort = 'trending' | 'popular' | 'recent' | 'remixed';

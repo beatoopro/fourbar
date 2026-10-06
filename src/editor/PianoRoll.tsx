@@ -515,7 +515,7 @@ export function PianoRoll() {
       </div>
 
       <div className="roll-vel-label">
-        <span className="label">Vélocité</span>
+        <span className="label">Velocity</span>
       </div>
       <div className="roll-vel" ref={velRef} onWheel={forwardWheel}>
         <VelocityLane width={width} ppt={ppt} playheadRef={(el) => {

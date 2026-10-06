@@ -11,7 +11,7 @@ import { mapDrumPitch, swingNote } from './drums';
  * Export MIDI (format 1) : une piste par piste de la composition, avec
  * positions, durées et vélocités exactes, tempo, signature 4/4 et tonalité.
  * La batterie part sur le canal 10 (index 9), reconnu comme kit GM par les DAW.
- * Le swing est intégré aux positions pour que le fichier sonne comme dans 4Chords.
+ * Le swing est intégré aux positions pour que le fichier sonne comme dans Fourbar.
  */
 export function compositionToMidi(c: Composition): Uint8Array {
   const midi = new Midi();

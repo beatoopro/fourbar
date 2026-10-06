@@ -33,17 +33,17 @@ function AnchorPicker({ tick, onChange }: { tick: number; onChange: (t: number) 
   const beat = Math.floor((tick % BAR) / PPQ);
   return (
     <span className="cm-anchor-pick">
-      <select className="input sm" value={bar} onChange={(e) => onChange(Number(e.target.value) * BAR + beat * PPQ)} aria-label="Mesure">
+      <select className="input sm" value={bar} onChange={(e) => onChange(Number(e.target.value) * BAR + beat * PPQ)} aria-label="Bar">
         {Array.from({ length: BARS }, (_, i) => (
           <option key={i} value={i}>
-            Mesure {i + 1}
+            Bar {i + 1}
           </option>
         ))}
       </select>
-      <select className="input sm" value={beat} onChange={(e) => onChange(bar * BAR + Number(e.target.value) * PPQ)} aria-label="Temps">
+      <select className="input sm" value={beat} onChange={(e) => onChange(bar * BAR + Number(e.target.value) * PPQ)} aria-label="Beat">
         {Array.from({ length: BEATS_PER_BAR }, (_, i) => (
           <option key={i} value={i}>
-            Temps {i + 1}
+            Beat {i + 1}
           </option>
         ))}
       </select>
@@ -158,16 +158,16 @@ function Composer({
                   setAnchor(playheadTick() ?? 0);
                   setPicking(true);
                 }}
-                title="Rattacher le commentaire à un moment de la loop"
+                title="Attach the comment to a moment in the loop"
               >
-                <I.Pin size={12} /> Ajouter un moment
+                <I.Pin size={12} /> Add a moment
               </button>
             ) : (
               <span className="cm-chip">
-                <button type="button" onClick={() => setPicking(!picking)} title="Changer le moment">
+                <button type="button" onClick={() => setPicking(!picking)} title="Change the moment">
                   <I.Pin size={12} /> {anchorLabel(anchor)}
                 </button>
-                <button type="button" onClick={() => (setAnchor(null), setPicking(false))} aria-label="Retirer le moment">
+                <button type="button" onClick={() => (setAnchor(null), setPicking(false))} aria-label="Remove the moment">
                   <I.Close size={11} />
                 </button>
               </span>
@@ -177,11 +177,11 @@ function Composer({
           {left < 80 && <span className={`cm-left ${left < 0 ? 'over' : ''}`}>{left}</span>}
           {onCancel && (
             <button type="button" className="btn ghost sm" onClick={onCancel}>
-              Annuler
+              Cancel
             </button>
           )}
           <button type="submit" className="btn primary sm" disabled={!body.trim() || busy}>
-            {parentId ? 'Répondre' : 'Publier'}
+            {parentId ? 'Reply' : 'Post'}
           </button>
         </div>
       </div>
@@ -252,7 +252,7 @@ export function Comments({
     if (c.deleted) {
       return (
         <div className="cm-item deleted" key={c.id}>
-          <span className="cm-deleted">Commentaire supprimé</span>
+          <span className="cm-deleted">Comment deleted</span>
         </div>
       );
     }
@@ -264,12 +264,12 @@ export function Comments({
         <div className="cm-main">
           <div className="cm-head">
             <button className="cm-name" onClick={() => navigate(`/profile/${c.authorId}`)}>
-              {author?.name ?? 'Inconnu'}
+              {author?.name ?? 'Unknown'}
             </button>
-            {c.authorId === pub.authorId && <span className="cm-badge">Auteur</span>}
+            {c.authorId === pub.authorId && <span className="cm-badge">Author</span>}
             <span className="muted">{timeAgo(c.createdAt)}</span>
             {c.anchorTick !== null && (
-              <button className="cm-chip" onClick={() => onPlayAt(c.anchorTick!)} title="Écouter à partir de ce moment">
+              <button className="cm-chip" onClick={() => onPlayAt(c.anchorTick!)} title="Play from this moment">
                 <I.Play size={10} /> {anchorLabel(c.anchorTick)}
               </button>
             )}
@@ -277,7 +277,7 @@ export function Comments({
           <Body text={c.body} />
           {c.linkedPublicationId && (
             <button className="cm-linked" onClick={() => navigate(loopPath(c.linkedPublicationId!))}>
-              <I.Remix size={12} /> Écouter « {linkedTitles[c.linkedPublicationId] ?? 'le remix'} »
+              <I.Remix size={12} /> Listen to “{linkedTitles[c.linkedPublicationId] ?? 'the remix'}”
             </button>
           )}
           <div className="cm-actions">
@@ -287,33 +287,33 @@ export function Comments({
                 const r = await api.toggleCommentLike(c.id);
                 setComments((list) => list?.map((x) => (x.id === c.id ? { ...x, likedByMe: r.liked, likes: r.likes } : x)) ?? null);
               }}
-              aria-label={c.likedByMe ? 'Retirer le j’aime' : 'J’aime'}
+              aria-label={c.likedByMe ? 'Unlike' : 'Like'}
             >
               <I.Heart size={13} filled={c.likedByMe} /> {c.likes > 0 ? c.likes : ''}
             </button>
-            <button onClick={() => setReplyTo({ threadId, mention: c.parentId && !mine ? `@${author?.handle ?? ''} ` : '' })}>Répondre</button>
+            <button onClick={() => setReplyTo({ threadId, mention: c.parentId && !mine ? `@${author?.handle ?? ''} ` : '' })}>Reply</button>
             {(mine || loopIsMine) && (
               <button
                 onClick={async () => {
-                  if (!confirm(mine ? 'Supprimer votre commentaire ?' : 'Supprimer ce commentaire de votre loop ?')) return;
+                  if (!confirm(mine ? 'Delete your comment?' : 'Delete this comment from your loop?')) return;
                   await api.deleteComment(c.id);
                   await changed();
-                  toast('Commentaire supprimé');
+                  toast('Comment deleted');
                 }}
               >
-                Supprimer
+                Delete
               </button>
             )}
             {!mine && (
               <button
                 className="cm-report"
                 onClick={async () => {
-                  if (!confirm('Signaler ce commentaire ? Il sera masqué pour vous.')) return;
-                  await api.reportComment(c.id, 'inapproprié');
+                  if (!confirm('Report this comment? It will be hidden for you.')) return;
+                  await api.reportComment(c.id, 'inappropriate');
                   await load();
-                  toast('Merci, le commentaire a été signalé');
+                  toast('Thanks, the comment has been reported');
                 }}
-                title="Signaler"
+                title="Report"
               >
                 <I.Flag size={12} />
               </button>
@@ -328,15 +328,15 @@ export function Comments({
     <section className="comments" id="comments">
       <div className="comments-head">
         <h2>
-          Commentaires <span className="muted">{total}</span>
+          Comments <span className="muted">{total}</span>
         </h2>
         {tops.length > 1 && (
           <div className="seg sm">
             <button className={sort === 'recent' ? 'on' : ''} onClick={() => setSort('recent')}>
-              Récents
+              Recent
             </button>
             <button className={sort === 'top' ? 'on' : ''} onClick={() => setSort('top')}>
-              Populaires
+              Top
             </button>
           </div>
         )}
@@ -345,7 +345,7 @@ export function Comments({
       <Composer
         pubId={pub.id}
         allowAnchor
-        placeholder={total ? 'Ajouter un commentaire…' : 'Soyez le premier à commenter cette loop…'}
+        placeholder={total ? 'Add a comment…' : 'Be the first to comment on this loop…'}
         onDone={() => void changed()}
       />
 
@@ -362,7 +362,7 @@ export function Comments({
                     replies.map((r) => item(r, c.id))
                   ) : (
                     <button className="cm-more" onClick={() => setExpanded(new Set([...expanded, c.id]))}>
-                      Voir les {replies.length} réponses
+                      View {replies.length} replies
                     </button>
                   )}
                 </div>
@@ -376,7 +376,7 @@ export function Comments({
                     initial={replyTo.mention}
                     allowAnchor={false}
                     autoFocus
-                    placeholder="Votre réponse…"
+                    placeholder="Your reply…"
                     onCancel={() => setReplyTo(null)}
                     onDone={() => {
                       setReplyTo(null);

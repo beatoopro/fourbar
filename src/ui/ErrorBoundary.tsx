@@ -12,7 +12,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
   }
 
   componentDidCatch(error: Error) {
-    console.error('4Chords : erreur d’affichage', error);
+    console.error('Fourbar: render error', error);
   }
 
   render() {
@@ -20,10 +20,10 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
     if (!error) return this.props.children;
     return (
       <div className="crash">
-        <h2>Oups, cette page n’a pas pu s’afficher.</h2>
+        <h2>Oops, this page couldn’t be displayed.</h2>
         <p className="muted">{error.message}</p>
         <button className="btn primary" onClick={() => location.reload()}>
-          Recharger
+          Reload
         </button>
       </div>
     );

@@ -34,7 +34,7 @@ export function App() {
             <span />
             <span />
           </span>
-          <span className="logo-text">4Chords</span>
+          <span className="logo-text">Fourbar</span>
         </a>
         <nav className="nav">
           {link('explore', 'Explore')}
@@ -42,7 +42,7 @@ export function App() {
           {link('profile', 'Profile')}
         </nav>
         <div className="topbar-right">
-          <button className="me" onClick={() => navigate('/profile')} title="Mon profil (simulé, sans compte)">
+          <button className="me" onClick={() => navigate('/profile')} title="My profile (simulated, no account)">
             <Avatar user={me} size={28} />
           </button>
         </div>

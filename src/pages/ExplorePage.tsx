@@ -35,18 +35,18 @@ export function ExplorePage({ highlight }: { highlight?: string | null }) {
       <div className="page-head">
         <div>
           <h1>Explore</h1>
-          <p>Écoutez, aimez et remixez les boucles de la communauté.</p>
+          <p>Listen to, like and remix loops from the community.</p>
         </div>
         <div className="search">
           <I.Search size={15} />
-          <input className="input" placeholder="Titre, artiste, genre…" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input className="input" placeholder="Title, artist, genre…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </div>
 
       <div className="filters">
         <div className="chips genre-chips">
           <button className={`chip ${genre === null ? 'on' : ''}`} onClick={() => setGenre(null)}>
-            Tout
+            All
           </button>
           {GENRES.map((g) => (
             <button key={g} className={`chip ${genre === g ? 'on' : ''}`} onClick={() => setGenre(genre === g ? null : g)}>
@@ -56,7 +56,7 @@ export function ExplorePage({ highlight }: { highlight?: string | null }) {
         </div>
         <div className="filters-row">
           <div className="chips">
-            <span className="label">Ambiance</span>
+            <span className="label">Mood</span>
             {MOODS.map((m) => (
               <button key={m} className={`chip sm ${mood === m ? 'on' : ''}`} onClick={() => setMood(mood === m ? null : m)}>
                 {m}
@@ -75,10 +75,10 @@ export function ExplorePage({ highlight }: { highlight?: string | null }) {
 
       {pubs === null ? null : pubs.length === 0 ? (
         <div className="empty">
-          Aucune boucle ne correspond à ces filtres.
+          No loops match these filters.
           <div style={{ marginTop: 12 }}>
             <button className="btn primary" onClick={() => navigate('/create')}>
-              Créer la première
+              Create the first one
             </button>
           </div>
         </div>

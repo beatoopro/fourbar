@@ -310,7 +310,7 @@ export function DrumGrid() {
             <div key={l.id} className={`lane-name ${hover?.lane === i ? 'hover' : ''} ${flash === i ? 'down' : ''}`} style={{ height: ROW_H }}>
               <button
                 className="lane-play"
-                title={`Écouter ${l.label}`}
+                title={`Play ${l.label}`}
                 onPointerDown={() => {
                   setFlash(i);
                   preview(l.pitch, useEditor.getState().comp.tracks.drums.defaultVelocity);
@@ -322,7 +322,7 @@ export function DrumGrid() {
               </button>
               <button
                 className="lane-more"
-                title="Remplir ou effacer la ligne"
+                title="Fill or clear the row"
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => setMenu(menu === i ? null : i)}
               >
@@ -331,19 +331,19 @@ export function DrumGrid() {
               {menu === i && (
                 <div className="menu lane-menu" onPointerDown={(e) => e.stopPropagation()}>
                   <button onClick={() => laneAction(l, PPQ)}>
-                    <b>Tous les temps</b>
-                    <span>Noires</span>
+                    <b>Every beat</b>
+                    <span>1/4</span>
                   </button>
                   <button onClick={() => laneAction(l, PPQ / 2)}>
-                    <b>Toutes les croches</b>
+                    <b>Every 8th</b>
                     <span>1/8</span>
                   </button>
                   <button onClick={() => laneAction(l, PPQ / 4)}>
-                    <b>Toutes les doubles</b>
+                    <b>Every 16th</b>
                     <span>1/16</span>
                   </button>
                   <button onClick={() => laneAction(l, 'clear')}>
-                    <b>Effacer la ligne</b>
+                    <b>Clear the row</b>
                   </button>
                 </div>
               )}
@@ -396,7 +396,7 @@ export function DrumGrid() {
       </div>
 
       <div className="roll-vel-label">
-        <span className="label">Force</span>
+        <span className="label">Velocity</span>
       </div>
       <div className="roll-vel" ref={velRef}>
         <VelocityLane width={width} ppt={ppt} playheadRef={(el) => {

@@ -70,7 +70,7 @@ export function VelocityLane({ width, ppt, playheadRef }: { width: number; ppt: 
               key={n.id}
               className={`vel-bar ${sel.has(n.id) ? 'sel' : ''} ${selection.length && !sel.has(n.id) ? 'dim' : ''}`}
               style={{ left: n.start * ppt, height: h, bottom: PAD }}
-              title={`Vélocité ${Math.round(n.velocity * 127)}`}
+              title={`Velocity ${Math.round(n.velocity * 127)}`}
             />
           );
         })}

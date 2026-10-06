@@ -80,6 +80,17 @@ export function noteCount(c: Composition): number {
   return TRACK_IDS.reduce((s, id) => s + c.tracks[id].notes.length, 0);
 }
 
+/** Ambiances enregistrées avant le passage de l'interface en anglais. */
+const LEGACY_MOODS: Record<string, string> = {
+  Mélancolique: 'Melancholic',
+  Joyeux: 'Happy',
+  Sombre: 'Dark',
+  Rêveur: 'Dreamy',
+  Énergique: 'Energetic',
+  Romantique: 'Romantic',
+  Épique: 'Epic',
+};
+
 /** Valide/répare des données venant du stockage ou d'une API. */
 export function normalizeComposition(raw: Composition): Composition {
   const base = createComposition(raw.authorId ?? 'unknown');
@@ -103,5 +114,6 @@ export function normalizeComposition(raw: Composition): Composition {
         })),
     };
   }
-  return { ...base, ...raw, tracks, bpm: clamp(raw.bpm ?? 90, 40, 220), swing: clamp(Number(raw.swing) || 0, 0, 1), version: 1 };
+  const moods = (raw.moods ?? []).map((m) => LEGACY_MOODS[m] ?? m);
+  return { ...base, ...raw, tracks, moods, bpm: clamp(raw.bpm ?? 90, 40, 220), swing: clamp(Number(raw.swing) || 0, 0, 1), version: 1 };
 }

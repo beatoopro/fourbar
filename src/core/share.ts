@@ -76,7 +76,7 @@ export async function encodeSharedLoop(loop: SharedLoop): Promise<string> {
   return toBase64Url(await pipe(new TextEncoder().encode(JSON.stringify(payload)), new CompressionStream('deflate-raw')));
 }
 
-/** Renvoie null si le lien est abîmé ou ne vient pas de 4Chords. */
+/** Renvoie null si le lien est abîmé ou ne vient pas de Fourbar. */
 export async function decodeSharedLoop(data: string): Promise<SharedLoop | null> {
   try {
     if (!data || data.length > MAX_ENCODED) return null;
@@ -87,8 +87,8 @@ export async function decodeSharedLoop(data: string): Promise<SharedLoop | null>
     const str = (v: unknown, max: number, fallback: string) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : fallback);
     const color = typeof p.u?.color === 'string' && /^#[0-9a-f]{3,8}$/i.test(p.u.color) ? p.u.color : '#8b5cf6';
     return {
-      composition: { ...composition, title: str(composition.title, 60, 'Sans titre') },
-      author: { name: str(p.u?.name, 40, 'Anonyme'), handle: str(p.u?.handle, 30, 'anonyme'), color },
+      composition: { ...composition, title: str(composition.title, 60, 'Untitled') },
+      author: { name: str(p.u?.name, 40, 'Anonymous'), handle: str(p.u?.handle, 30, 'anonymous'), color },
       publishedAt: !Number.isNaN(Date.parse(p.p)) ? p.p : composition.createdAt,
     };
   } catch {

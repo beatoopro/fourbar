@@ -99,10 +99,10 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
   if (pub === null)
     return (
       <div className="page empty">
-        Cette loop est introuvable. Elle a peut-être été supprimée, ou le lien est incomplet.
+        This loop can’t be found. It may have been deleted, or the link is incomplete.
         <div style={{ marginTop: 12 }}>
           <button className="btn primary" onClick={() => navigate('/explore')}>
-            Retour à Explore
+            Back to Explore
           </button>
         </div>
       </div>
@@ -133,7 +133,7 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
       downloadBlob(await renderWav(c), midiFileName(c).replace(/\.mid$/, '.wav'), 'audio/wav');
     } catch (e) {
       console.error(e);
-      toast('Le rendu WAV a échoué');
+      toast('WAV render failed');
     } finally {
       setRendering(false);
     }
@@ -142,7 +142,7 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
   return (
     <div className="page loop-page">
       <button className="back" onClick={() => (window.history.length > 1 ? window.history.back() : navigate('/explore'))}>
-        <I.ArrowLeft size={15} /> Retour
+        <I.ArrowLeft size={15} /> Back
       </button>
 
       <div className={`loop-hero ${playing ? 'playing' : ''}`}>
@@ -152,7 +152,7 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
             const r = e.currentTarget.getBoundingClientRect();
             void playAt(Math.floor(((e.clientX - r.left) / r.width) * LOOP_TICKS));
           }}
-          title="Cliquer pour écouter à partir de cet endroit"
+          title="Click to play from here"
         >
           <MiniPreview comp={c} playingId={playing ? pub.id : undefined} />
           <div className="loop-markers">
@@ -169,7 +169,7 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
                     void playAt(m.anchorTick!);
                     document.getElementById(`cm-${m.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                   }}
-                  title={`${u?.name ?? ''} · ${anchorLabel(m.anchorTick!)} : ${m.body}`}
+                  title={`${u?.name ?? ''} · ${anchorLabel(m.anchorTick!)}: ${m.body}`}
                 />
               );
             })}
@@ -182,7 +182,7 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
         </div>
 
         <div className="loop-info">
-          <button className="loop-play" onClick={() => void play()} aria-label={playing ? 'Arrêter' : 'Écouter'}>
+          <button className="loop-play" onClick={() => void play()} aria-label={playing ? 'Stop' : 'Play'}>
             {playing ? <I.Stop size={20} /> : <I.Play size={20} />}
           </button>
           <div className="loop-titles">
@@ -196,13 +196,13 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
             ) : (
               <button className="card-author" onClick={() => navigate(`/profile/${pub.authorId}`)}>
                 <Avatar user={author} size={20} />
-                <span>{author?.name ?? 'Inconnu'}</span>
+                <span>{author?.name ?? 'Unknown'}</span>
                 <span className="muted">· {timeAgo(pub.publishedAt)}</span>
               </button>
             )}
             {original && (
               <button className="card-remix-of" onClick={() => navigate(loopPath(original.id))}>
-                <I.Remix size={12} /> Remix de « {original.composition.title} »
+                <I.Remix size={12} /> Remix of “{original.composition.title}”
               </button>
             )}
           </div>
@@ -221,7 +221,7 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
               {m}
             </span>
           ))}
-          {!shared && <span className="tag">{pub.plays} écoutes</span>}
+          {!shared && <span className="tag">{pub.plays} plays</span>}
         </div>
         {c.description && <p className="loop-desc">{c.description}</p>}
 
@@ -230,7 +230,7 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
             <button
               className={`btn ${liked ? 'liked' : ''}`}
               onClick={async () => setLikes(await toggleLike(pub))}
-              title={liked ? 'Retirer des favoris' : 'J’aime'}
+              title={liked ? 'Unlike' : 'Like'}
             >
               <I.Heart size={15} filled={liked} /> {likes}
             </button>
@@ -239,30 +239,30 @@ export function LoopPage({ id, data, focus }: { id: string; data: string | null;
             className="btn"
             onClick={async () => shareLink(shared ? window.location.href : await shareUrl(pub, users[pub.authorId]), c.title)}
           >
-            <I.Share size={15} /> Partager
+            <I.Share size={15} /> Share
           </button>
           <button
             className="btn"
             onClick={() => {
               downloadMidi(c);
-              toast('MIDI téléchargé');
+              toast('MIDI downloaded');
             }}
           >
             <I.Download size={15} /> MIDI
           </button>
           <button className="btn" onClick={() => void wav()} disabled={rendering}>
-            <I.Wave size={15} /> {rendering ? 'Rendu…' : 'WAV'}
+            <I.Wave size={15} /> {rendering ? 'Rendering…' : 'WAV'}
           </button>
           <button className="btn primary" onClick={() => openRemix(pub)}>
-            <I.Remix size={15} /> {pub.authorId === ME_ID ? 'Éditer' : 'Remixer'}
+            <I.Remix size={15} /> {pub.authorId === ME_ID ? 'Edit' : 'Remix'}
           </button>
         </div>
       </div>
 
       {shared ? (
         <div className="loop-note">
-          Cette loop vous a été partagée par lien. Vous pouvez l’écouter, télécharger le MIDI ou la remixer. Les commentaires
-          arriveront ici quand 4Chords aura des comptes en ligne.
+          This loop was shared with you by link. You can listen to it, download the MIDI or remix it. Comments will show up
+          here once Fourbar has online accounts.
         </div>
       ) : (
         <Comments pub={pub} activeTick={beat === null ? null : beat * PPQ} onPlayAt={(t) => void playAt(t)} onChange={setComments} />

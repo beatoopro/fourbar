@@ -15,15 +15,15 @@ export interface Scale {
 }
 
 export const SCALES: Scale[] = [
-  { id: 'major', label: 'Majeur', intervals: [0, 2, 4, 5, 7, 9, 11] },
-  { id: 'minor', label: 'Mineur', intervals: [0, 2, 3, 5, 7, 8, 10] },
-  { id: 'dorian', label: 'Dorien', intervals: [0, 2, 3, 5, 7, 9, 10] },
-  { id: 'mixolydian', label: 'Mixolydien', intervals: [0, 2, 4, 5, 7, 9, 10] },
-  { id: 'harmonic-minor', label: 'Mineur harmonique', intervals: [0, 2, 3, 5, 7, 8, 11] },
-  { id: 'lydian', label: 'Lydien', intervals: [0, 2, 4, 6, 7, 9, 11] },
-  { id: 'phrygian', label: 'Phrygien', intervals: [0, 1, 3, 5, 7, 8, 10] },
-  { id: 'pentatonic-major', label: 'Penta majeure', intervals: [0, 2, 4, 7, 9] },
-  { id: 'pentatonic-minor', label: 'Penta mineure', intervals: [0, 3, 5, 7, 10] },
+  { id: 'major', label: 'Major', intervals: [0, 2, 4, 5, 7, 9, 11] },
+  { id: 'minor', label: 'Minor', intervals: [0, 2, 3, 5, 7, 8, 10] },
+  { id: 'dorian', label: 'Dorian', intervals: [0, 2, 3, 5, 7, 9, 10] },
+  { id: 'mixolydian', label: 'Mixolydian', intervals: [0, 2, 4, 5, 7, 9, 10] },
+  { id: 'harmonic-minor', label: 'Harmonic minor', intervals: [0, 2, 3, 5, 7, 8, 11] },
+  { id: 'lydian', label: 'Lydian', intervals: [0, 2, 4, 6, 7, 9, 11] },
+  { id: 'phrygian', label: 'Phrygian', intervals: [0, 1, 3, 5, 7, 8, 10] },
+  { id: 'pentatonic-major', label: 'Major pentatonic', intervals: [0, 2, 4, 7, 9] },
+  { id: 'pentatonic-minor', label: 'Minor pentatonic', intervals: [0, 3, 5, 7, 10] },
   { id: 'blues', label: 'Blues', intervals: [0, 3, 5, 6, 7, 10] },
 ];
 
@@ -50,13 +50,13 @@ export interface ChordType {
 }
 
 export const CHORD_TYPES: ChordType[] = [
-  { id: 'diatonic3', label: 'Auto · triade', intervals: [], stack: 3 },
-  { id: 'diatonic7', label: 'Auto · 7e', intervals: [], stack: 4 },
-  { id: 'diatonic9', label: 'Auto · 9e', intervals: [], stack: 5 },
-  { id: 'maj', label: 'Majeur', intervals: [0, 4, 7] },
-  { id: 'min', label: 'Mineur', intervals: [0, 3, 7] },
-  { id: 'dim', label: 'Diminué', intervals: [0, 3, 6] },
-  { id: 'aug', label: 'Augmenté', intervals: [0, 4, 8] },
+  { id: 'diatonic3', label: 'Auto · triad', intervals: [], stack: 3 },
+  { id: 'diatonic7', label: 'Auto · 7th', intervals: [], stack: 4 },
+  { id: 'diatonic9', label: 'Auto · 9th', intervals: [], stack: 5 },
+  { id: 'maj', label: 'Major', intervals: [0, 4, 7] },
+  { id: 'min', label: 'Minor', intervals: [0, 3, 7] },
+  { id: 'dim', label: 'Diminished', intervals: [0, 3, 6] },
+  { id: 'aug', label: 'Augmented', intervals: [0, 4, 8] },
   { id: 'sus2', label: 'Sus2', intervals: [0, 2, 7] },
   { id: 'sus4', label: 'Sus4', intervals: [0, 5, 7] },
   { id: 'maj7', label: 'Maj7', intervals: [0, 4, 7, 11] },
@@ -130,13 +130,13 @@ export interface ProgressionPreset {
 
 export const PROGRESSIONS: ProgressionPreset[] = [
   { id: 'pop', label: 'Pop · I–V–vi–IV', degrees: [0, 4, 5, 3], chordType: 'diatonic3', scale: 'major' },
-  { id: 'sad', label: 'Mélancolique · vi–IV–I–V', degrees: [5, 3, 0, 4], chordType: 'diatonic3', scale: 'major' },
+  { id: 'sad', label: 'Melancholic · vi–IV–I–V', degrees: [5, 3, 0, 4], chordType: 'diatonic3', scale: 'major' },
   { id: 'jazz', label: 'Jazz · ii–V–I–vi', degrees: [1, 4, 0, 5], chordType: 'diatonic7', scale: 'major' },
   { id: 'neosoul', label: 'Neo-soul · IV–iii–ii–I', degrees: [3, 2, 1, 0], chordType: 'diatonic9', scale: 'major' },
   { id: 'lofi', label: 'Lo-fi · ii–V–I–IV', degrees: [1, 4, 0, 3], chordType: 'diatonic7', scale: 'major' },
-  { id: 'minor', label: 'Mineur · i–VI–III–VII', degrees: [0, 5, 2, 6], chordType: 'diatonic3', scale: 'minor' },
-  { id: 'dark', label: 'Sombre · i–iv–VI–v', degrees: [0, 3, 5, 4], chordType: 'diatonic7', scale: 'minor' },
-  { id: 'epic', label: 'Épique · VI–VII–i–i', degrees: [5, 6, 0, 0], chordType: 'diatonic3', scale: 'minor' },
+  { id: 'minor', label: 'Minor · i–VI–III–VII', degrees: [0, 5, 2, 6], chordType: 'diatonic3', scale: 'minor' },
+  { id: 'dark', label: 'Dark · i–iv–VI–v', degrees: [0, 3, 5, 4], chordType: 'diatonic7', scale: 'minor' },
+  { id: 'epic', label: 'Epic · VI–VII–i–i', degrees: [5, 6, 0, 0], chordType: 'diatonic3', scale: 'minor' },
 ];
 
 /** Hauteur MIDI de la note de basse d'un degré, dans l'octave choisie. */

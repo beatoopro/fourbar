@@ -1,4 +1,7 @@
-# 4Chords · V1 locale
+# Fourbar · V1 locale
+
+Anciennement 4Chords. L’interface et le contenu de démonstration sont en anglais
+(public international) ; le code et sa documentation restent en français.
 
 Plateforme communautaire de composition de boucles de 4 mesures : un piano roll
 précis (Chords / Melody / Bass), une grille de batterie (Drums) et une bibliothèque communautaire simulée

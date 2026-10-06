@@ -66,13 +66,13 @@ export function PublishDialog({
           }
         }}
       >
-        <h2>{isUpdate ? 'Mettre à jour la publication' : 'Publier'}</h2>
+        <h2>{isUpdate ? 'Update post' : 'Publish'}</h2>
         <p className="sub">
-          {comp.bpm} BPM · 4 mesures · {comp.remixOf ? 'remix · ' : ''}visible dans Explore
+          {comp.bpm} BPM · 4 bars · {comp.remixOf ? 'remix · ' : ''}visible in Explore
         </p>
         <div className="field">
-          <span className="label">Nom</span>
-          <input ref={inputRef} className="input" value={title} maxLength={60} placeholder="Ma progression" onChange={(e) => setTitle(e.target.value)} />
+          <span className="label">Name</span>
+          <input ref={inputRef} className="input" value={title} maxLength={60} placeholder="My progression" onChange={(e) => setTitle(e.target.value)} />
         </div>
         <div className="field">
           <span className="label">Genre</span>
@@ -85,7 +85,7 @@ export function PublishDialog({
           </div>
         </div>
         <div className="field">
-          <span className="label">Ambiance · facultatif</span>
+          <span className="label">Mood · optional</span>
           <div className="chips">
             {MOODS.map((m) => (
               <button type="button" key={m} className={`chip sm ${moods.includes(m) ? 'on' : ''}`} onClick={() => setMoods(toggle(moods, m, 3))}>
@@ -97,15 +97,15 @@ export function PublishDialog({
         {original && !isUpdate && (
           <label className="check">
             <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
-            Laisser un commentaire sur « {original.composition.title} » pour annoncer ce remix
+            Leave a comment on “{original.composition.title}” to announce this remix
           </label>
         )}
         <div className="modal-actions">
           <button type="button" className="btn ghost" onClick={onClose}>
-            Annuler
+            Cancel
           </button>
           <button type="submit" className="btn primary" disabled={!canPublish}>
-            {isUpdate ? 'Mettre à jour' : 'Publier'}
+            {isUpdate ? 'Update' : 'Publish'}
           </button>
         </div>
       </form>
