@@ -3,13 +3,16 @@
  * c'est ce format qui est sauvegardé, publié et (plus tard) envoyé à une API.
  */
 
-export type TrackId = 'chords' | 'melody' | 'bass';
+export type TrackId = 'chords' | 'melody' | 'bass' | 'drums';
 
-export const TRACK_IDS: TrackId[] = ['chords', 'melody', 'bass'];
+export const TRACK_IDS: TrackId[] = ['chords', 'melody', 'bass', 'drums'];
+
+/** Pistes mélodiques (hors batterie) : celles dont la hauteur des notes a un sens musical. */
+export const MELODIC_TRACK_IDS: TrackId[] = ['chords', 'melody', 'bass'];
 
 export interface Note {
   id: string;
-  /** Hauteur MIDI (0-127). */
+  /** Hauteur MIDI (0-127). Piste Drums : numéro General MIDI de l'élément (36 kick, 38 snare…). */
   pitch: number;
   /** Position en ticks (PPQ = 96). */
   start: number;
@@ -47,6 +50,8 @@ export interface Composition {
   genres: string[];
   moods: string[];
   bpm: number;
+  /** Swing des doubles-croches, 0 (droit) à 1 (très chaloupé). Absent = 0. */
+  swing?: number;
   key: KeySignature;
   tracks: Record<TrackId, Track>;
   /** Id de la composition d'origine si c'est un remix. */

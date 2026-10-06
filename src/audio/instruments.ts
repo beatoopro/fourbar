@@ -1,4 +1,6 @@
 import * as Tone from 'tone';
+import { isDrumKit } from '../core/instruments';
+import { createDrumKit } from './drums';
 
 /**
  * Instruments 100 % synthétisés avec Tone.js (licence MIT) : aucun échantillon
@@ -135,6 +137,10 @@ const factories: Record<string, () => InstrumentVoice> = {
   },
 };
 
+/** Part de réverbération par piste : la batterie reste sèche et percutante. */
+export const REVERB_SEND: Record<string, number> = { chords: 1, melody: 1, bass: 1, drums: 0.25 };
+
 export function createInstrument(id: string): InstrumentVoice {
+  if (isDrumKit(id)) return createDrumKit(id);
   return (factories[id] ?? factories.keys)();
 }

@@ -3,7 +3,7 @@ import { instrumentsFor } from '../core/instruments';
 import { useEditor } from './store';
 import * as I from '../ui/Icons';
 
-/** Liste des 3 pistes : sélection, instrument, volume, vélocité par défaut, mute/solo. */
+/** Liste des 4 pistes : sélection, instrument, volume, vélocité par défaut, mute/solo. */
 export function TrackPanel() {
   const comp = useEditor((s) => s.comp);
   const active = useEditor((s) => s.activeTrack);
@@ -25,7 +25,8 @@ export function TrackPanel() {
               <span className="track-dot" />
               <span className="track-name">{t.name}</span>
               <span className="track-count" title={`Raccourci : touche ${i + 1}`}>
-                {t.notes.length} note{t.notes.length > 1 ? 's' : ''}
+                {t.notes.length} {id === 'drums' ? 'coup' : 'note'}
+                {t.notes.length > 1 ? 's' : ''}
               </span>
               <div className="track-btns" onClick={(e) => e.stopPropagation()}>
                 <button className={`ms ${t.muted ? 'on mute' : ''}`} title="Muet" onClick={() => updateTrack(id, { muted: !t.muted })}>

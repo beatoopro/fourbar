@@ -12,6 +12,7 @@ import {
   voiceLead,
 } from '../core/theory';
 import { buildStarterDraft } from '../services/local/seed';
+import { DRUM_LANES, buildPatternNotes, fillLane, getDrumPattern, humanizeNotes, repeatFirstBar } from '../core/drums';
 
 /**
  * État de l'éditeur (piano roll). Toutes les modifications de notes passent
@@ -51,6 +52,8 @@ export interface EditorState {
   rowHeight: number;
   ghosts: boolean;
   scaleHighlight: boolean;
+  /** Grille de batterie : n'afficher que les lignes utilisées. */
+  drumCompact: boolean;
   lastLength: number;
   clipboard: Clipboard | null;
   cursorTick: number | null;
@@ -64,7 +67,7 @@ export interface EditorState {
   set<K extends keyof EditorState>(key: K, value: EditorState[K]): void;
   setTrack(id: TrackId): void;
   updateTrack(id: TrackId, patch: Partial<Omit<Track, 'notes' | 'id'>>): void;
-  updateComp(patch: Partial<Pick<Composition, 'title' | 'bpm' | 'key' | 'genres' | 'moods' | 'description'>>): void;
+  updateComp(patch: Partial<Pick<Composition, 'title' | 'bpm' | 'swing' | 'key' | 'genres' | 'moods' | 'description'>>): void;
 
   commit(fn: (notes: Note[]) => Note[], selection?: string[]): void;
   beginGesture(): void;
@@ -90,6 +93,12 @@ export interface EditorState {
   invertSelection(direction: 1 | -1): void;
   setVelocities(values: Record<string, number>): void;
   insertProgression(presetId: string, withBass: boolean): void;
+  /** Batterie : chaque action est une étape d'annulation. */
+  insertDrumPattern(patternId: string, withFill: boolean): void;
+  editDrums(fn: (notes: Note[]) => Note[]): void;
+  repeatDrumBar(): void;
+  fillDrumLane(pitch: number, every: number): void;
+  humanize(): void;
   markSaved(): void;
 }
 
@@ -154,6 +163,7 @@ export const useEditor = create<EditorState>((set, get) => {
     rowHeight: 18,
     ghosts: true,
     scaleHighlight: true,
+    drumCompact: false,
     lastLength: PPQ,
     clipboard: null,
     cursorTick: null,
@@ -329,6 +339,19 @@ export const useEditor = create<EditorState>((set, get) => {
     transpose(semi) {
       const ids = new Set(get().selection);
       if (!ids.size) return;
+      if (get().activeTrack === 'drums') {
+        // Batterie : ↑ ↓ font passer les coups sur la ligne voisine.
+        const dir = semi > 0 ? -1 : 1;
+        get().commit((notes) =>
+          notes.map((n) => {
+            if (!ids.has(n.id)) return n;
+            const i = DRUM_LANES.findIndex((l) => l.pitch === n.pitch);
+            const lane = DRUM_LANES[clamp((i < 0 ? DRUM_LANES.length - 1 : i) + dir, 0, DRUM_LANES.length - 1)];
+            return { ...n, pitch: lane.pitch };
+          }),
+        );
+        return;
+      }
       get().commit((notes) =>
         notes.map((n) => (ids.has(n.id) ? { ...n, pitch: clamp(n.pitch + semi, MIN_PITCH, MAX_PITCH) } : n)),
       );
@@ -427,6 +450,42 @@ export const useEditor = create<EditorState>((set, get) => {
         comp = withNotes(comp, 'bass', bassNotes);
       }
       set({ comp, activeTrack: 'chords', selection: chordNotes.map((n) => n.id) });
+    },
+
+    insertDrumPattern(patternId, withFill) {
+      const p = getDrumPattern(patternId);
+      if (!p) return;
+      const s = get();
+      pushHistory(entry());
+      const notes = buildPatternNotes(p, withFill);
+      const comp = withNotes(s.comp, 'drums', notes);
+      // Le pattern règle aussi le kit et le swing conseillés (modifiables ensuite).
+      set({
+        comp: { ...comp, swing: p.swing, tracks: { ...comp.tracks, drums: { ...comp.tracks.drums, instrument: p.kit } } },
+        activeTrack: 'drums',
+        selection: [],
+      });
+    },
+
+    editDrums(fn) {
+      const s = get();
+      pushHistory(entry());
+      set({ comp: withNotes(s.comp, 'drums', fn(s.comp.tracks.drums.notes)) });
+    },
+
+    repeatDrumBar() {
+      get().editDrums(repeatFirstBar);
+    },
+
+    fillDrumLane(pitch, every) {
+      const vel = get().comp.tracks.drums.defaultVelocity;
+      get().editDrums((notes) => fillLane(notes, pitch, every, vel));
+    },
+
+    humanize() {
+      const s = get();
+      const ids = s.selection.length ? new Set(s.selection) : null;
+      s.commit((notes) => humanizeNotes(notes, ids));
     },
 
     markSaved() {

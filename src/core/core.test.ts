@@ -44,7 +44,7 @@ describe('MIDI', () => {
     c.tracks.melody.notes = [{ id: 'b', pitch: 72, start: PPQ / 3, duration: PPQ / 6, velocity: 1 }];
     c.tracks.bass.notes = [{ id: 'c', pitch: 36, start: BAR * 3 + PPQ / 8, duration: PPQ / 8, velocity: 0.25 }];
     const midi = new Midi(compositionToMidi(c));
-    expect(midi.tracks.map((t) => t.name)).toEqual(['Chords', 'Melody', 'Bass']);
+    expect(midi.tracks.map((t) => t.name)).toEqual(['Chords', 'Melody', 'Bass', 'Drums']);
     expect(Math.round(midi.header.tempos[0].bpm)).toBe(97);
     expect(midi.tracks[1].notes[0].ticks).toBe(160); // triolet de croche exact à 480 PPQ
     expect(midi.tracks[2].notes[0].durationTicks).toBe(60);

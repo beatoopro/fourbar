@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { Note, TrackId } from '../core/types';
-import { TRACK_IDS } from '../core/types';
+import { MELODIC_TRACK_IDS } from '../core/types';
 import { BAR, BARS, LOOP_TICKS, PPQ, clamp, snapFloor, snapRound, snapTicks } from '../core/timing';
 import { buildChord, detectChord, isBlackKey, isInScale, noteName } from '../core/theory';
 import { uid } from '../core/composition';
@@ -100,7 +100,7 @@ export function PianoRoll() {
     if (!el) return;
     const fit = clamp(Math.floor((el.clientWidth - 12) / (BARS * 4)), 36, 200);
     useEditor.getState().set('pxPerBeat', fit);
-    const all = TRACK_IDS.flatMap((id) => comp.tracks[id].notes.map((n) => n.pitch));
+    const all = MELODIC_TRACK_IDS.flatMap((id) => comp.tracks[id].notes.map((n) => n.pitch));
     const center = all.length ? (Math.max(...all) + Math.min(...all)) / 2 : 60;
     el.scrollTop = yOf(Math.round(center)) - el.clientHeight / 2;
     onScroll();
@@ -399,6 +399,11 @@ export function PianoRoll() {
               {i % 4 === 0 ? <b>{i / 4 + 1}</b> : pxPerBeat > 50 ? <span>{`${Math.floor(i / 4) + 1}.${(i % 4) + 1}`}</span> : null}
             </div>
           ))}
+          {/* Repères de la batterie (kick, snare/clap) pour caler basse et accords sur le groove. */}
+          {ghosts &&
+            comp.tracks.drums.notes
+              .filter((n) => n.pitch === 36 || n.pitch === 38 || n.pitch === 39)
+              .map((n) => <div key={n.id} className={`ruler-mark ${n.pitch === 36 ? 'kick' : 'snare'}`} style={{ left: n.start * ppt }} />)}
           {cursorTick !== null && hasClipboard && <div className="ruler-cursor" style={{ left: cursorTick * ppt }} />}
           <div className="playhead" ref={(el) => {
             playheads.current[0] = el;
@@ -450,7 +455,7 @@ export function PianoRoll() {
           <div className="grid-lines" style={gridBg} />
 
           {ghosts &&
-            TRACK_IDS.filter((id) => id !== activeTrack).map((id) =>
+            MELODIC_TRACK_IDS.filter((id) => id !== activeTrack).map((id) =>
               comp.tracks[id].notes.map((n) => (
                 <div
                   key={n.id}

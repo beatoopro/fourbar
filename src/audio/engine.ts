@@ -2,7 +2,8 @@ import * as Tone from 'tone';
 import type { Composition, TrackId } from '../core/types';
 import { TRACK_IDS } from '../core/types';
 import { LOOP_TICKS, PPQ, ticksToSeconds } from '../core/timing';
-import { createInstrument, type InstrumentVoice } from './instruments';
+import { swingNote } from '../core/drums';
+import { REVERB_SEND, createInstrument, type InstrumentVoice } from './instruments';
 
 /**
  * Moteur audio : lit une composition en boucle (4 mesures) avec Tone.js.
@@ -99,7 +100,7 @@ class AudioEngine {
     const volume = nodes?.volume ?? new Tone.Volume(0);
     if (!nodes) {
       volume.connect(this.master);
-      volume.connect(this.reverbSend);
+      volume.connect(new Tone.Gain(REVERB_SEND[id] ?? 1).connect(this.reverbSend));
     }
     voice.output.connect(volume);
     nodes = { instrumentId, voice, volume };
@@ -124,11 +125,13 @@ class AudioEngine {
     for (const id of TRACK_IDS) {
       for (const n of comp.tracks[id].notes) {
         if (n.start >= LOOP_TICKS) continue;
+        // Le swing est appliqué à la lecture : les notes restent sur la grille dans les données.
+        const { start, duration } = swingNote(n.start, n.duration, comp.swing);
         this.part.add({
-          time: `${Math.round(n.start)}i`,
+          time: `${Math.min(LOOP_TICKS - 1, Math.round(start))}i`,
           track: id,
           pitch: n.pitch,
-          duration: Math.min(n.duration, LOOP_TICKS * 2),
+          duration: Math.min(duration, LOOP_TICKS * 2),
           velocity: n.velocity,
         });
       }

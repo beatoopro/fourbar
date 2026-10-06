@@ -1,6 +1,7 @@
 import type { Composition, Note, Track, TrackId } from './types';
 import { TRACK_IDS } from './types';
 import { LOOP_TICKS, clamp } from './timing';
+import { isDrumKit } from './instruments';
 
 let counter = 0;
 export function uid(prefix = 'n'): string {
@@ -12,10 +13,11 @@ export const TRACK_LABELS: Record<TrackId, string> = {
   chords: 'Chords',
   melody: 'Melody',
   bass: 'Bass',
+  drums: 'Drums',
 };
 
-const DEFAULT_INSTRUMENT: Record<TrackId, string> = { chords: 'keys', melody: 'pluck', bass: 'sub' };
-const DEFAULT_VOLUME: Record<TrackId, number> = { chords: 0.7, melody: 0.75, bass: 0.8 };
+const DEFAULT_INSTRUMENT: Record<TrackId, string> = { chords: 'keys', melody: 'pluck', bass: 'sub', drums: 'kit-dusty' };
+const DEFAULT_VOLUME: Record<TrackId, number> = { chords: 0.7, melody: 0.75, bass: 0.8, drums: 0.8 };
 
 export function createTrack(id: TrackId, notes: Note[] = []): Track {
   return {
@@ -39,11 +41,13 @@ export function createComposition(authorId: string, partial: Partial<Composition
     genres: [],
     moods: [],
     bpm: 90,
+    swing: 0,
     key: { root: 0, scale: 'major' },
     tracks: {
       chords: createTrack('chords'),
       melody: createTrack('melody'),
       bass: createTrack('bass'),
+      drums: createTrack('drums'),
     },
     createdAt: now,
     updatedAt: now,
@@ -86,6 +90,8 @@ export function normalizeComposition(raw: Composition): Composition {
       ...createTrack(id),
       ...t,
       id,
+      // Un kit sur une piste mélodique (ou l'inverse) n'a pas de sens : on revient à l'instrument par défaut.
+      instrument: t?.instrument && isDrumKit(t.instrument) === (id === 'drums') ? t.instrument : DEFAULT_INSTRUMENT[id],
       notes: (t?.notes ?? [])
         .filter((n) => Number.isFinite(n.pitch) && Number.isFinite(n.start) && n.duration > 0)
         .map((n) => ({
@@ -97,5 +103,5 @@ export function normalizeComposition(raw: Composition): Composition {
         })),
     };
   }
-  return { ...base, ...raw, tracks, bpm: clamp(raw.bpm ?? 90, 40, 220), version: 1 };
+  return { ...base, ...raw, tracks, bpm: clamp(raw.bpm ?? 90, 40, 220), swing: clamp(Number(raw.swing) || 0, 0, 1), version: 1 };
 }

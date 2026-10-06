@@ -22,11 +22,19 @@ export const INSTRUMENTS: InstrumentMeta[] = [
   { id: 'sub', label: 'Sub Bass', track: 'bass', gmProgram: 38 },
   { id: 'analog', label: 'Analog Bass', track: 'bass', gmProgram: 39 },
   { id: 'round', label: 'Round Bass', track: 'bass', gmProgram: 33 },
+  // Kits de batterie (exportés sur le canal 10, le programme n'a pas d'effet).
+  { id: 'kit-808', label: 'Kit 808', track: 'drums', gmProgram: 0 },
+  { id: 'kit-dusty', label: 'Kit Dusty', track: 'drums', gmProgram: 0 },
+  { id: 'kit-house', label: 'Kit House', track: 'drums', gmProgram: 0 },
 ];
 
+export const isDrumKit = (id: string) => id.startsWith('kit-');
+
 export function instrumentsFor(track: TrackId): InstrumentMeta[] {
-  // Tous les instruments sont disponibles sur toutes les pistes, ceux de la piste en premier.
-  return [...INSTRUMENTS.filter((i) => i.track === track), ...INSTRUMENTS.filter((i) => i.track !== track)];
+  // La piste Drums ne propose que des kits ; les autres pistes, tous les instruments mélodiques (ceux de la piste en premier).
+  if (track === 'drums') return INSTRUMENTS.filter((i) => i.track === 'drums');
+  const melodic = INSTRUMENTS.filter((i) => i.track !== 'drums');
+  return [...melodic.filter((i) => i.track === track), ...melodic.filter((i) => i.track !== track)];
 }
 
 export function getInstrumentMeta(id: string): InstrumentMeta {

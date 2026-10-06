@@ -636,6 +636,163 @@
   will-change: transform;
 }
 
+/* ---------- Repères sur la règle (batterie / basse) ---------- */
+.ruler-mark {
+  position: absolute;
+  top: 3px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.75;
+}
+.ruler-mark.kick {
+  background: var(--drums);
+}
+.ruler-mark.snare {
+  top: 9px;
+  background: color-mix(in srgb, var(--drums) 55%, #fff);
+}
+.ruler-mark.bass {
+  background: var(--bass);
+}
+
+/* ---------- Grille de batterie ---------- */
+.roll.drums {
+  grid-template-columns: 112px minmax(0, 1fr);
+}
+.drum-lanes {
+  overflow: hidden;
+}
+.lane-name {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--bg-2);
+}
+.lane-name.hover {
+  background: var(--surface);
+}
+.lane-name.down {
+  background: color-mix(in srgb, var(--drums) 30%, var(--bg-2));
+}
+.lane-play {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0 4px 0 10px;
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lane-play:hover {
+  color: var(--text);
+}
+.lane-more {
+  width: 22px;
+  height: 22px;
+  margin-right: 4px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0;
+}
+.lane-name:hover .lane-more,
+.lane-name .lane-more:focus-visible {
+  opacity: 1;
+}
+.lane-more:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.lane-menu {
+  top: 2px;
+  left: calc(100% - 6px);
+  right: auto;
+  width: 190px;
+}
+.drum-lanes:has(.lane-menu) {
+  overflow: visible;
+  z-index: 10;
+}
+.drum-content {
+  background: #14111b;
+  cursor: pointer;
+}
+.beat-shade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.beat-shade.odd {
+  background: rgba(255, 255, 255, 0.025);
+}
+.drum-hover {
+  position: absolute;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--drums) 12%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--drums) 35%, transparent);
+  outline-offset: -3px;
+  pointer-events: none;
+}
+.hit {
+  position: absolute;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--drums) var(--v, 80%), #1a1625);
+  border: 1px solid color-mix(in srgb, var(--drums) 70%, #000);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  z-index: 1;
+}
+.hit.accent {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 8px color-mix(in srgb, var(--drums) 55%, transparent);
+  border-color: color-mix(in srgb, var(--drums) 60%, #fff);
+}
+.hit.sel {
+  background: color-mix(in srgb, var(--drums) 78%, #fff);
+  border-color: #fff;
+  z-index: 2;
+}
+
+/* ---------- Swing ---------- */
+.swing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.swing span {
+  font-size: 10px;
+  color: var(--text-3);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.swing .range {
+  width: 72px;
+}
+.swing b {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  width: 34px;
+  text-align: right;
+}
+
 /* ---------- Vélocité ---------- */
 .roll-vel {
   overflow: hidden;

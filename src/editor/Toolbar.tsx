@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CHORD_TYPES, PROGRESSIONS, detectChord } from '../core/theory';
 import { BAR, PPQ, SNAP_OPTIONS, clamp } from '../core/timing';
+import { DRUM_PATTERNS } from '../core/drums';
 import { useEditor } from './store';
 import * as I from '../ui/Icons';
 
@@ -17,6 +18,8 @@ export function Toolbar() {
   const [withBass, setWithBass] = useState(true);
   const selNotes = s.comp.tracks[s.activeTrack].notes.filter((n) => s.selection.includes(n.id));
   const chord = selNotes.length >= 3 ? detectChord(selNotes.map((n) => n.pitch)) : null;
+
+  if (s.activeTrack === 'drums') return <DrumToolbar />;
 
   return (
     <div className="toolbar">
@@ -134,6 +137,85 @@ export function Toolbar() {
         ) : (
           <span className="muted">{s.chordMode ? 'Cliquez pour poser un accord' : s.tool === 'select' ? 'Glissez pour sélectionner' : 'Cliquez pour ajouter une note'}</span>
         )}
+      </div>
+    </div>
+  );
+}
+
+/** Barre d'outils de la grille de batterie. */
+function DrumToolbar() {
+  const s = useEditor();
+  const [withFill, setWithFill] = useState(true);
+  const hits = s.comp.tracks.drums.notes.length;
+
+  return (
+    <div className="toolbar">
+      <div className="tool-group">
+        <span className="tool-label" title="Résolution de la grille">
+          <I.Magnet size={14} />
+        </span>
+        <select className="select sm" value={s.snap} onChange={(e) => s.set('snap', e.target.value)} title="Résolution de la grille : 1/16 pour la plupart des styles, triolets ou 1/32 pour les hi-hats trap">
+          {SNAP_OPTIONS.filter((o) => o.ticks <= PPQ).map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <button className="btn sm" onClick={s.quantize} title="Quantifier sur la grille (Q)">
+          Q
+        </button>
+      </div>
+
+      <div className="tool-group">
+        <select
+          className="select sm prog"
+          value=""
+          onChange={(e) => {
+            if (e.target.value) s.insertDrumPattern(e.target.value, withFill);
+          }}
+          title="Remplace la piste Drums par un pattern prêt à l'emploi (règle aussi le kit et le swing)"
+        >
+          <option value="">🥁 Pattern…</option>
+          {DRUM_PATTERNS.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+        <label className="check" title="Variation (break) en mesure 4, quand le pattern en propose une">
+          <input type="checkbox" checked={withFill} onChange={(e) => setWithFill(e.target.checked)} /> + break
+        </label>
+      </div>
+
+      <div className="tool-group">
+        <button className="btn sm" disabled={!hits} onClick={s.repeatDrumBar} title="Copier la mesure 1 sur les mesures 2, 3 et 4">
+          Répéter la mesure 1
+        </button>
+        <button className="btn sm" disabled={!hits} onClick={s.humanize} title="Varier légèrement la force et le placement des coups (U)">
+          Humaniser
+        </button>
+      </div>
+
+      <div className="tool-group">
+        <button className={`btn icon ${s.ghosts ? 'on' : ''}`} title="Repères de la basse sur la règle (G)" onClick={() => s.set('ghosts', !s.ghosts)}>
+          <I.Ghost />
+        </button>
+        <button className={`btn sm ${s.drumCompact ? 'on' : ''}`} title="N'afficher que les lignes utilisées" onClick={() => s.set('drumCompact', !s.drumCompact)}>
+          Lignes utilisées
+        </button>
+      </div>
+
+      <div className="tool-group">
+        <button className="btn icon" title="Dézoomer (-)" onClick={() => s.set('pxPerBeat', clamp(s.pxPerBeat / 1.25, 24, 480))}>
+          <I.ZoomOut />
+        </button>
+        <button className="btn icon" title="Zoomer (+) — ou Ctrl + molette" onClick={() => s.set('pxPerBeat', clamp(s.pxPerBeat * 1.25, 24, 480))}>
+          <I.ZoomIn />
+        </button>
+      </div>
+
+      <div className="tool-status">
+        <span className="muted">Maj + clic : accent · Alt + clic : roulement</span>
       </div>
     </div>
   );

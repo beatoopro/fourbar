@@ -2,7 +2,8 @@ import * as Tone from 'tone';
 import type { Composition } from '../core/types';
 import { TRACK_IDS } from '../core/types';
 import { LOOP_TICKS, PPQ, ticksToSeconds } from '../core/timing';
-import { createInstrument } from './instruments';
+import { swingNote } from '../core/drums';
+import { REVERB_SEND, createInstrument } from './instruments';
 
 /**
  * Rendu hors-ligne en WAV. On joue la boucle deux fois et on garde le second
@@ -30,12 +31,13 @@ export async function renderWav(comp: Composition): Promise<Blob> {
       const vol = new Tone.Volume(Tone.gainToDb(Math.max(0.001, t.volume)));
       voice.output.connect(vol);
       vol.connect(master);
-      vol.connect(send);
+      vol.connect(new Tone.Gain(REVERB_SEND[id] ?? 1).connect(send));
       for (let pass = 0; pass < 2; pass++) {
         for (const n of t.notes) {
-          const time = ticksToSeconds(n.start + pass * LOOP_TICKS, comp.bpm);
+          const sw = swingNote(n.start, n.duration, comp.swing);
+          const time = ticksToSeconds(sw.start + pass * LOOP_TICKS, comp.bpm);
           transport.schedule((when) => {
-            voice.trigger(n.pitch, ticksToSeconds(n.duration, comp.bpm), when, n.velocity);
+            voice.trigger(n.pitch, ticksToSeconds(sw.duration, comp.bpm), when, n.velocity);
           }, time);
         }
       }

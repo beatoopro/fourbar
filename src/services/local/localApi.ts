@@ -35,11 +35,26 @@ function write(key: string, value: unknown) {
   }
 }
 
-const SEED_VERSION = 1;
+/** 2 : les loops de démonstration reçoivent une piste de batterie. */
+const SEED_VERSION = 2;
 
 export class LocalCommunityApi implements CommunityApi {
   constructor() {
-    if (read<number>(KEYS.seeded, 0) < SEED_VERSION) this.reset();
+    const seeded = read<number>(KEYS.seeded, 0);
+    if (seeded === 0) this.reset();
+    else if (seeded < SEED_VERSION) this.upgradeSeed();
+  }
+
+  /** Met à jour les loops de démonstration sans toucher aux publications, likes et écoutes de l'utilisateur. */
+  private upgradeSeed() {
+    const fresh = new Map(buildSeedPublications().map((p) => [p.id, p]));
+    const pubs = this.pubs().map((p) => {
+      const f = fresh.get(p.id);
+      fresh.delete(p.id);
+      return f ? { ...p, composition: f.composition } : p;
+    });
+    write(KEYS.pubs, [...pubs, ...fresh.values()]);
+    write(KEYS.seeded, SEED_VERSION);
   }
 
   /** Réinitialise les données de démonstration (garde le profil). */

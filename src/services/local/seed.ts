@@ -3,6 +3,7 @@ import type { Publication, User } from '../types';
 import { createComposition, uid } from '../../core/composition';
 import { BAR, PPQ } from '../../core/timing';
 import { chordIntervals, degreeRootPitch, getScale, voiceLead } from '../../core/theory';
+import { buildPatternNotes, getDrumPattern, patternForGenre, humanizeNotes } from '../../core/drums';
 
 /**
  * Données de démonstration : profils fictifs et compositions générées
@@ -213,10 +214,20 @@ function buildComposition(spec: Spec, index: number): Composition {
   });
   comp.tracks.melody.notes = mn;
 
+  applyDrums(comp, spec.genre, index, rand);
+
   const date = new Date(Date.now() - spec.daysAgo * 86400000 - index * 3600000).toISOString();
   comp.createdAt = date;
   comp.updatedAt = date;
   return comp;
+}
+
+/** Batterie de démo : un pattern du genre, légèrement humanisé (déterministe). */
+function applyDrums(comp: Composition, genre: string, variant: number, rand: () => number) {
+  const p = patternForGenre(genre, variant);
+  comp.tracks.drums.instrument = p.kit;
+  comp.tracks.drums.notes = humanizeNotes(buildPatternNotes(p, variant % 2 === 0), null, rand);
+  comp.swing = p.swing;
 }
 
 export function buildSeedPublications(): Publication[] {
@@ -241,6 +252,7 @@ export function buildSeedPublications(): Publication[] {
     c.title = title;
     c.remixOf = src.id;
     patch(c);
+    if (c.genres[0] !== src.genres[0]) applyDrums(c, c.genres[0], sourceIdx + 1, rng(sourceIdx * 31 + likes));
     const date = new Date(Date.now() - daysAgo * 86400000).toISOString();
     c.createdAt = date;
     c.updatedAt = date;
@@ -283,5 +295,9 @@ export function buildStarterDraft(): Composition {
   roots.forEach((r, bar) =>
     c.tracks.bass.notes.push({ id: uid(), pitch: (r % 12) + 36, start: bar * BAR, duration: BAR - PPQ / 2, velocity: 0.8 }),
   );
+  // Et un rythme simple, pour entendre la batterie dès la première lecture.
+  const basic = getDrumPattern('basic')!;
+  c.tracks.drums.instrument = basic.kit;
+  c.tracks.drums.notes = buildPatternNotes(basic, true);
   return c;
 }

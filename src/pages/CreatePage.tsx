@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useEditor } from '../editor/store';
 import { PianoRoll } from '../editor/PianoRoll';
+import { DrumGrid } from '../editor/DrumGrid';
 import { Toolbar } from '../editor/Toolbar';
 import { TrackPanel } from '../editor/TrackPanel';
 import { ShortcutsHelp } from '../editor/ShortcutsHelp';
@@ -8,6 +9,7 @@ import { engine } from '../audio/engine';
 import { renderWav } from '../audio/wav';
 import { NOTE_NAMES, SCALES } from '../core/theory';
 import { clamp, snapTicks } from '../core/timing';
+import { swingLabel } from '../core/drums';
 import { TRACK_IDS } from '../core/types';
 import { createComposition, noteCount } from '../core/composition';
 import { downloadBlob, downloadMidi, midiFileName, midiToComposition } from '../core/midi';
@@ -22,6 +24,7 @@ export function CreatePage() {
   const dirty = useEditor((s) => s.dirty);
   const canUndo = useEditor((s) => s.past.length > 0);
   const canRedo = useEditor((s) => s.future.length > 0);
+  const drums = useEditor((s) => s.activeTrack === 'drums');
   const engineState = useEngineState();
   const playing = engineState.playing && engineState.sourceId === 'editor';
   const [publishing, setPublishing] = useState(false);
@@ -69,18 +72,19 @@ export function CreatePage() {
       else if (k === 'arrowdown') st.transpose(e.shiftKey ? -12 : -1);
       else if (k === 'arrowright') e.shiftKey ? st.resizeBy(step) : st.nudge(step);
       else if (k === 'arrowleft') e.shiftKey ? st.resizeBy(-step) : st.nudge(-step);
-      else if (k === '1' || k === '2' || k === '3') st.setTrack(TRACK_IDS[Number(k) - 1]);
+      else if (k === '1' || k === '2' || k === '3' || k === '4') st.setTrack(TRACK_IDS[Number(k) - 1]);
       else if (k === 'd' || k === 'p' || k === 'b') {
         st.set('tool', 'draw');
         st.set('chordMode', false);
       } else if (k === 's' || k === 'e') {
         st.set('tool', 'select');
         st.set('chordMode', false);
-      } else if (k === 'c') {
+      } else if (k === 'c' && st.activeTrack !== 'drums') {
         st.set('chordMode', !st.chordMode);
         st.set('tool', 'draw');
       } else if (k === 'i') st.invertSelection(e.shiftKey ? -1 : 1);
       else if (k === 'q') st.quantize();
+      else if (k === 'u') st.humanize();
       else if (k === 'g') st.set('ghosts', !st.ghosts);
       else if (k === 'h') st.set('scaleHighlight', !st.scaleHighlight);
       else if (k === '+' || k === '=') st.set('pxPerBeat', clamp(st.pxPerBeat * 1.25, 24, 480));
@@ -151,7 +155,7 @@ export function CreatePage() {
       const c = midiToComposition(await file.arrayBuffer(), ME_ID);
       if (!c.title || c.title === 'Import MIDI') c.title = file.name.replace(/\.midi?$/i, '');
       useEditor.getState().load(c);
-      toast('MIDI importé (4 premières mesures, 3 premières pistes)');
+      toast('MIDI importé (4 premières mesures, batterie sur le canal 10)');
     } catch {
       toast('Fichier MIDI illisible');
     }
@@ -182,6 +186,19 @@ export function CreatePage() {
               onChange={(e) => useEditor.getState().updateComp({ bpm: clamp(Number(e.target.value) || 90, 40, 220) })}
             />
             <span>BPM</span>
+          </label>
+          <label className="swing" title="Swing des doubles-croches, sur toutes les pistes (50 % = droit)">
+            <span>Swing</span>
+            <input
+              className="range"
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={comp.swing ?? 0}
+              onChange={(e) => useEditor.getState().updateComp({ swing: Number(e.target.value) })}
+            />
+            <b>{swingLabel(comp.swing ?? 0)}</b>
           </label>
           <div className="key-select" title="Tonalité (sert à la gamme surlignée et aux accords automatiques)">
             <select className="select sm" value={comp.key.root} onChange={(e) => useEditor.getState().updateComp({ key: { ...comp.key, root: Number(e.target.value) } })}>
@@ -226,7 +243,7 @@ export function CreatePage() {
               <div className="menu" onMouseLeave={() => setExportOpen(false)}>
                 <button onClick={() => { setExportOpen(false); downloadMidi(useEditor.getState().comp); }}>
                   <b>MIDI</b>
-                  <span>3 pistes, vélocités, tempo</span>
+                  <span>4 pistes, batterie sur le canal 10</span>
                 </button>
                 <button onClick={() => void exportWav()}>
                   <b>WAV</b>
@@ -260,7 +277,7 @@ export function CreatePage() {
         <TrackPanel />
         <div className="editor">
           <Toolbar />
-          <PianoRoll />
+          {drums ? <DrumGrid /> : <PianoRoll />}
         </div>
       </div>
 

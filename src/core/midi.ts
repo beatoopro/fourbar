@@ -1,14 +1,17 @@
 import { Midi } from '@tonejs/midi';
 import type { Composition } from './types';
-import { TRACK_IDS } from './types';
+import { MELODIC_TRACK_IDS, TRACK_IDS } from './types';
 import { PPQ } from './timing';
 import { getInstrumentMeta } from './instruments';
 import { getScale } from './theory';
 import { uid, createComposition, normalizeComposition } from './composition';
+import { mapDrumPitch, swingNote } from './drums';
 
 /**
  * Export MIDI (format 1) : une piste par piste de la composition, avec
  * positions, durées et vélocités exactes, tempo, signature 4/4 et tonalité.
+ * La batterie part sur le canal 10 (index 9), reconnu comme kit GM par les DAW.
+ * Le swing est intégré aux positions pour que le fichier sonne comme dans 4Chords.
  */
 export function compositionToMidi(c: Composition): Uint8Array {
   const midi = new Midi();
@@ -29,13 +32,14 @@ export function compositionToMidi(c: Composition): Uint8Array {
     const t = c.tracks[id];
     const track = midi.addTrack();
     track.name = t.name;
-    track.channel = index;
-    track.instrument.number = getInstrumentMeta(t.instrument).gmProgram;
+    track.channel = id === 'drums' ? 9 : index;
+    track.instrument.number = id === 'drums' ? 0 : getInstrumentMeta(t.instrument).gmProgram;
     for (const n of [...t.notes].sort((a, b) => a.start - b.start)) {
+      const { start, duration } = swingNote(n.start, n.duration, c.swing);
       track.addNote({
         midi: n.pitch,
-        ticks: Math.round(n.start * ratio),
-        durationTicks: Math.max(1, Math.round(n.duration * ratio)),
+        ticks: Math.round(start * ratio),
+        durationTicks: Math.max(1, Math.round(duration * ratio)),
         velocity: n.velocity,
       });
     }
@@ -64,7 +68,10 @@ export function downloadMidi(c: Composition) {
   downloadBlob(compositionToMidi(c) as BlobPart, midiFileName(c), 'audio/midi');
 }
 
-/** Import MIDI : les 3 premières pistes non vides deviennent Chords, Melody, Bass (4 premières mesures). */
+/**
+ * Import MIDI : les 3 premières pistes mélodiques non vides deviennent Chords,
+ * Melody, Bass ; les pistes du canal 10 deviennent la piste Drums (4 premières mesures).
+ */
 export function midiToComposition(data: ArrayBuffer, authorId: string): Composition {
   const midi = new Midi(data);
   const ratio = PPQ / midi.header.ppq;
@@ -72,10 +79,8 @@ export function midiToComposition(data: ArrayBuffer, authorId: string): Composit
     title: midi.header.name || 'Import MIDI',
     bpm: Math.round(midi.header.tempos[0]?.bpm ?? 90),
   });
-  const tracks = midi.tracks.filter((t) => t.notes.length > 0 && t.channel !== 9).slice(0, 3);
-  tracks.forEach((t, i) => {
-    const id = TRACK_IDS[i];
-    comp.tracks[id].notes = t.notes
+  const convert = (notes: (typeof midi.tracks)[number]['notes']) =>
+    notes
       .map((n) => ({
         id: uid(),
         pitch: n.midi,
@@ -84,6 +89,14 @@ export function midiToComposition(data: ArrayBuffer, authorId: string): Composit
         velocity: n.velocity,
       }))
       .filter((n) => n.start < PPQ * 16);
+  const tracks = midi.tracks.filter((t) => t.notes.length > 0 && t.channel !== 9).slice(0, 3);
+  tracks.forEach((t, i) => {
+    comp.tracks[MELODIC_TRACK_IDS[i]].notes = convert(t.notes);
+  });
+  const drums = midi.tracks.filter((t) => t.notes.length > 0 && t.channel === 9).flatMap((t) => t.notes);
+  comp.tracks.drums.notes = convert(drums).flatMap((n) => {
+    const pitch = mapDrumPitch(n.pitch);
+    return pitch === null ? [] : [{ ...n, pitch, duration: Math.min(n.duration, PPQ / 4) }];
   });
   return normalizeComposition(comp);
 }

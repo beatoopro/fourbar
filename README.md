@@ -1,7 +1,7 @@
 # 4Chords · V1 locale
 
 Plateforme communautaire de composition de boucles de 4 mesures : un piano roll
-précis (Chords / Melody / Bass) et une bibliothèque communautaire simulée
+précis (Chords / Melody / Bass), une grille de batterie (Drums) et une bibliothèque communautaire simulée
 (Explore, Profile, Remix). Tout fonctionne en local dans le navigateur, sans
 compte, sans serveur et sans clé d'API.
 
@@ -55,16 +55,34 @@ Le son démarre au premier clic (règle des navigateurs).
   modifications entendues en direct pendant la lecture.
 - 9 instruments synthétisés (Soft Keys, Warm Pad, Velvet Organ, Glass Pluck,
   Bell, Soft Lead, Sub Bass, Analog Bass, Round Bass), réverbération, limiteur.
-- Export MIDI complet (3 pistes nommées, positions, durées et vélocités exactes,
-  tempo, signature, tonalité, programme General MIDI).
+- Export MIDI complet (4 pistes nommées, positions, durées et vélocités exactes,
+  tempo, signature, tonalité, programme General MIDI ; batterie sur le canal 10).
 - Export WAV d'une boucle de 4 mesures qui se répète sans coupure.
-- Import d'un fichier MIDI (4 premières mesures, 3 premières pistes).
+- Import d'un fichier MIDI (4 premières mesures, 3 premières pistes mélodiques,
+  pistes du canal 10 vers la batterie).
 - Sauvegarde automatique du brouillon en cours, et « Enregistrer » pour le
   garder dans les brouillons du profil.
 
+**Batterie (piste Drums, touche 4)**
+- Grille à 10 lignes nommées (Kick, Snare, Clap, Toms, Closed / Open hat, Shaker,
+  Ride, Crash). Clic : ajouter / retirer un coup ; glisser : peindre ou gommer
+  une rangée ; glisser verticalement sur un coup : sa force ; Maj + clic :
+  accent ; Alt + clic : roulement de 2, 3 ou 4 coups ; clic droit : gomme.
+- Résolution suivant le magnétisme (1/16 par défaut, 1/32, triolets) ; les coups
+  hors grille s'affichent à leur vraie position.
+- 13 patterns prêts à l'emploi par genre (lo-fi, boom bap, trap, house, R&B,
+  neo-soul, jazz, dembow, cinématique…), avec break optionnel en mesure 4.
+- Répéter la mesure 1, remplir / effacer une ligne (menu ⋯), humaniser (U),
+  lignes utilisées seulement, repères de la basse sur la règle.
+- 3 kits synthétisés : 808, Dusty (lo-fi), House. Le hi-hat fermé coupe
+  l'ouvert, la batterie reçoit peu de réverbération.
+- Swing global (50 à 75 %, façon MPC) appliqué à toutes les pistes à la lecture,
+  intégré aux exports MIDI et WAV. Les notes restent sur la grille.
+- Le kick et la snare apparaissent en repères sur la règle du piano roll.
+
 **Communauté (simulée)**
-- Explore : cartes avec titre, auteur, genres, BPM, tonalité, aperçu visuel,
-  lecture, j'aime, téléchargement MIDI, Remix.
+- Explore : cartes avec titre, auteur, genres, BPM, tonalité, aperçu visuel
+  (notes et bande de batterie), lecture, j'aime, téléchargement MIDI, Remix.
 - Filtres par genre (Jazz, Lo-fi, Hip-hop, Neo-soul, R&B, Pop, House,
   Cinematic, Trap) et par ambiance, recherche, classements Tendances,
   Populaires, Récentes, Plus remixées.
@@ -79,19 +97,21 @@ Le son démarre au premier clic (règle des navigateurs).
 - **Utilisateurs** : 8 profils fictifs et votre profil « Vous » ; aucune
   authentification.
 - **Publications** : 26 boucles de démonstration générées au premier lancement
-  (dont 4 remixes). Likes et écoutes sont des compteurs locaux.
+  (dont 4 remixes), chacune avec une batterie adaptée à son genre. Likes et
+  écoutes sont des compteurs locaux.
 - **Stockage** : tout est dans le `localStorage` du navigateur. Les données
   sont propres à ce navigateur et à cette adresse (http://localhost:5173) ;
   vider les données du site remet la démo à zéro.
 
 ## Limitations connues
 
-- Pas de batterie (prévu plus tard), une seule signature (4/4), 4 mesures.
+- Une seule signature (4/4), 4 mesures.
 - Le magnétisme s'applique au début des notes déplacées ; le redimensionnement
   ne se fait que par le bord droit.
 - Undo / redo couvre les notes, pas les réglages de pistes (instrument, volume).
-- Les instruments sont des synthétiseurs simples : agréables pour tester, pas
-  au niveau d'une banque d'échantillons.
+- Les instruments et les kits de batterie sont des synthétiseurs simples :
+  crédibles en électronique, pas au niveau d'une banque d'échantillons
+  (aucun kit acoustique pour l'instant).
 - L'éditeur est pensé pour la souris et le clavier ; il s'affiche sur mobile
   mais l'édition tactile n'est pas optimisée.
 - L'export WAV prend quelques secondes (rendu hors-ligne dans le navigateur).
@@ -105,15 +125,18 @@ src/
     timing.ts        PPQ 96 (triolets exacts), grille, magnétisme
     theory.ts        Gammes, accords, renversements, progressions, conduite des voix
     midi.ts          Export / import MIDI (@tonejs/midi)
+    drums.ts         Lignes du kit (notes GM), patterns, swing, outils batterie
     composition.ts   Création, copie, remix, validation des données
     instruments.ts   Métadonnées des instruments (nom, programme GM)
   audio/       Lecture avec Tone.js
     engine.ts        Transport en boucle, mixage, prévisualisation des notes
     instruments.ts   Synthés (aucun échantillon externe)
+    drums.ts         Kits de batterie synthétisés
     wav.ts           Rendu hors-ligne et encodage WAV
   editor/      Piano roll
     store.ts         État de l'éditeur (Zustand) : édition, historique, presse-papiers
     PianoRoll.tsx    Grille, clavier, règle, interactions souris
+    DrumGrid.tsx     Grille de batterie (remplace le piano roll sur la piste Drums)
     VelocityLane.tsx Panneau de vélocité
     Toolbar.tsx, TrackPanel.tsx, ShortcutsHelp.tsx
   services/    Couche de données communautaire
@@ -148,7 +171,7 @@ externe, aucune police ou image chargée depuis Internet.
 
 ## Raccourcis principaux
 
-`Espace` lecture · `1/2/3` pistes · `D` crayon · `C` accords · `S` sélection ·
+`Espace` lecture · `1/2/3/4` pistes · `D` crayon · `C` accords · `S` sélection ·
 `Ctrl+Z / Ctrl+Maj+Z` annuler / rétablir · `Ctrl+C/X/V/D` copier / couper /
 coller / dupliquer · `↑↓` transposer · `←→` déplacer · `Maj+←→` longueur ·
-`I` renverser · `Q` quantifier · `G` ghost notes · `H` gamme · `?` aide.
+`I` renverser · `Q` quantifier · `U` humaniser · `G` ghost notes · `H` gamme · `?` aide.

@@ -72,3 +72,34 @@ describe('éditeur', () => {
     expect(st().comp.tracks.melody.notes).toHaveLength(1);
   });
 });
+
+describe('batterie dans l’éditeur', () => {
+  beforeEach(() => st().load(createComposition('me')));
+
+  it('insère un pattern en une étape annulable', () => {
+    st().insertDrumPattern('house', true);
+    expect(st().activeTrack).toBe('drums');
+    expect(st().comp.tracks.drums.notes.length).toBeGreaterThan(20);
+    expect(st().comp.tracks.drums.instrument).toBe('kit-house');
+    expect(st().comp.swing).toBeGreaterThan(0);
+    st().undo();
+    expect(st().comp.tracks.drums.notes).toEqual([]);
+  });
+
+  it('↑ ↓ déplacent les coups sur la ligne voisine', () => {
+    st().setTrack('drums');
+    const n = st().addNote(36, 0, PPQ / 4);
+    st().transpose(1);
+    expect(st().comp.tracks.drums.notes.find((m) => m.id === n.id)!.pitch).toBe(38);
+    st().transpose(-1);
+    st().transpose(-1);
+    expect(st().comp.tracks.drums.notes.find((m) => m.id === n.id)!.pitch).toBe(36);
+  });
+
+  it('remplit une ligne', () => {
+    st().setTrack('drums');
+    st().fillDrumLane(42, PPQ / 2);
+    expect(st().comp.tracks.drums.notes.filter((n) => n.pitch === 42)).toHaveLength(32);
+    expect(BAR).toBe(384);
+  });
+});
